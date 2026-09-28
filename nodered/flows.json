@@ -354,7 +354,7 @@
     "order": 2,
     "value": "payload",
     "width": 5,
-    "height": 1,
+    "height": 4,
     "gtype": "gauge-half",
     "title": "Distance",
     "units": "cm",
@@ -365,20 +365,21 @@
       },
       {
         "color": "#ffea00",
-        "from": 60
+        "from": 20
       },
       {
         "color": "#ff3d00",
-        "from": 120
+        "from": 40
       }
     ],
     "min": 0,
-    "max": 200,
+    "max": 60,
     "x": 550,
     "y": 290,
     "wires": [
       []
-    ]
+    ],
+    "alwaysShowTitle": true
   },
   {
     "id": "bdab4ff8f39f9429",
@@ -440,7 +441,7 @@
     "order": 4,
     "value": "payload",
     "width": 5,
-    "height": 1,
+    "height": 4,
     "gtype": "gauge-half",
     "title": "Distance",
     "units": "cm",
@@ -451,20 +452,21 @@
       },
       {
         "color": "#ffea00",
-        "from": 60
+        "from": 20
       },
       {
         "color": "#ff3d00",
-        "from": 120
+        "from": 40
       }
     ],
     "min": 0,
-    "max": 200,
+    "max": 60,
     "x": 550,
     "y": 420,
     "wires": [
       []
-    ]
+    ],
+    "alwaysShowTitle": true
   },
   {
     "id": "440ee16d4470cc0b",
@@ -526,7 +528,7 @@
     "order": 6,
     "value": "payload",
     "width": 5,
-    "height": 1,
+    "height": 4,
     "gtype": "gauge-half",
     "title": "Distance",
     "units": "cm",
@@ -537,20 +539,21 @@
       },
       {
         "color": "#ffea00",
-        "from": 60
+        "from": 20
       },
       {
         "color": "#ff3d00",
-        "from": 120
+        "from": 40
       }
     ],
     "min": 0,
-    "max": 200,
+    "max": 60,
     "x": 550,
     "y": 550,
     "wires": [
       []
-    ]
+    ],
+    "alwaysShowTitle": true
   },
   {
     "id": "2d449230a0af3c5c",
@@ -612,7 +615,7 @@
     "order": 8,
     "value": "payload",
     "width": 5,
-    "height": 1,
+    "height": 4,
     "gtype": "gauge-half",
     "title": "Distance",
     "units": "cm",
@@ -623,20 +626,21 @@
       },
       {
         "color": "#ffea00",
-        "from": 60
+        "from": 20
       },
       {
         "color": "#ff3d00",
-        "from": 120
+        "from": 40
       }
     ],
     "min": 0,
-    "max": 200,
+    "max": 60,
     "x": 550,
     "y": 680,
     "wires": [
       []
-    ]
+    ],
+    "alwaysShowTitle": true
   },
   {
     "id": "56a6534916ee0486",
