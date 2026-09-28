@@ -846,7 +846,7 @@
         "page": "",
         "ui": "ui_base_1",
         "name": "Status Bar",
-        "order": 4,
+        "order": 5,
         "width": 0,
         "height": 0,
         "head": "",
@@ -1316,8 +1316,8 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "esp status",
-        "func": "// A healthy ESP32 publishes roughly twice a second, so 20s without\n// a single message means it is off, booting, or its MQTT client is\n// wedged. Ping is not used: a rebooting board answers ICMP before it\n// reconnects, so it would look healthy while publishing nothing.\nconst LIMIT = 20;\nconst seen = flow.get('espSeen') || {};\nconst now = Date.now();\nconst out = [];\nfor (const d of [\n        { id: 'esp1', label: 'ESP32-1', slots: 'Slots 1-2' },\n        { id: 'esp2', label: 'ESP32-2', slots: 'Slots 3-4' }]) {\n    const t = seen[d.id];\n    const secs = t ? Math.round((now - t) / 1000) : null;\n    const online = secs !== null && secs <= LIMIT;\n    out.push({\n        topic: d.id,\n        payload: {\n            label: d.label,\n            slots: d.slots,\n            online: online,\n            secs: secs,\n            text: online ? 'ONLINE'\n                 : secs === null ? 'NO DATA' : 'OFFLINE ' + secs + 's'\n        }\n    });\n}\nreturn [out];",
-        "outputs": 1,
+        "func": "// A healthy ESP32 publishes roughly twice a second, so 20s without\n// a single message means it is off, booting, or its MQTT client is\n// wedged. Ping is not used: a rebooting board answers ICMP before it\n// reconnects, so it would look healthy while publishing nothing.\nconst LIMIT = 20;\nconst seen = flow.get('espSeen') || {};\nconst now = Date.now();\nconst out = [];\nfor (const d of [\n        { id: 'esp1', label: 'ESP32-1', slots: 'Slots 1-2' },\n        { id: 'esp2', label: 'ESP32-2', slots: 'Slots 3-4' }]) {\n    const t = seen[d.id];\n    const secs = t ? Math.round((now - t) / 1000) : null;\n    const online = secs !== null && secs <= LIMIT;\n    out.push({\n        topic: d.id,\n        payload: {\n            label: d.label,\n            slots: d.slots,\n            online: online,\n            secs: secs,\n            text: online ? 'ONLINE'\n                 : secs === null ? 'NO DATA' : 'OFFLINE ' + secs + 's'\n        }\n    });\n}\nreturn [out[0], out[1]];",
+        "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
@@ -1328,6 +1328,9 @@
         "wires": [
             [
                 "esp_badge_1"
+            ],
+            [
+                "esp_badge_2"
             ]
         ]
     },
@@ -1336,15 +1339,15 @@
         "type": "ui-template",
         "z": "cc25d96a5ae42c89",
         "group": "ab14b8c0991b6a02",
-        "page": "",
-        "ui": "",
+        "page": "3dfae6a90a7a167f",
+        "ui": "ui_base_1",
         "name": "ESP32-1 status",
-        "order": 3,
-        "width": "2",
-        "height": "2",
+        "order": 1,
+        "width": "4",
+        "height": "1",
         "head": "",
         "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
-        "storeOutMessages": false,
+        "storeOutMessages": true,
         "passthru": true,
         "resendOnRefresh": true,
         "templateScope": "local",
@@ -1360,20 +1363,20 @@
         "type": "ui-template",
         "z": "cc25d96a5ae42c89",
         "group": "ab14b8c0991b6a02",
-        "page": "",
-        "ui": "",
+        "page": "3dfae6a90a7a167f",
+        "ui": "ui_base_1",
         "name": "ESP32-2 status",
-        "order": 2,
-        "width": "2",
-        "height": "2",
+        "order": 1,
+        "width": "4",
+        "height": "1",
         "head": "",
         "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
-        "storeOutMessages": false,
+        "storeOutMessages": true,
         "passthru": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "esp-badge-wrap",
-        "x": 1660,
+        "x": 1700,
         "y": 300,
         "wires": [
             []
@@ -1419,8 +1422,8 @@
         "topic": "",
         "payload": "\u2014",
         "payloadType": "str",
-        "x": 1500,
-        "y": 500,
+        "x": 1540,
+        "y": 540,
         "wires": [
             [
                 "ui_rfid_tap"
@@ -1432,23 +1435,23 @@
         "type": "ui-text",
         "z": "cc25d96a5ae42c89",
         "group": "ab14b8c0991b6a02",
-        "page": "3dfae6a90a7a167f",
-        "ui": "ui_base_1",
-        "name": "LAST RFID TAP",
         "order": 1,
-        "width": 6,
+        "width": "2",
         "height": 1,
+        "name": "LAST RFID TAP",
+        "label": "Last RFID Tap",
+        "format": "{{value}}",
+        "layout": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
         "wrapText": false,
         "className": "",
-        "style": false,
-        "label": true,
-        "format": "{{value}}",
-        "valueType": "msg",
         "value": "payload",
-        "x": 830,
-        "y": 140,
-        "wires": [
-            []
-        ]
+        "valueType": "msg",
+        "x": 1620,
+        "y": 480,
+        "wires": []
     }
 ]
