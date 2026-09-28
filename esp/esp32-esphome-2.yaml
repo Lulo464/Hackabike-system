@@ -1,20 +1,29 @@
-# ESP 2 (ESP32 DevKit): Ultrasonic Slot 3/4 + MQTT (kein LED-Strip, den steuert ESP 1)
+# ESP 2 (ESP32 DevKit): Ultrasonic Slot 3/4 + RFID-Leser HW-147 (PN532, I2C)
+# + Grove-LCD RGB Backlight (I2C) + Servo Tower Pro MG90S fuers Gate (D25) + MQTT
+# (kein LED-Strip, den steuert ESP 1)
 esphome:
   name: bikeslot-2
   on_boot:
-    priority: -100
-    then:
-      # Reset beim Boot: Messung sperren
-      - lambda: |-
-          id(ready) = false;
-          for (int i = 0; i < 2; i++) {
-            id(sensor_state)[i] = -1;
-            id(sensor_fails)[i] = 0;
-          }
-          id(next_sensor) = 0;
-      # Erst nach dem Hochfahren (WLAN, MQTT, Strom stabil) wird gemessen
-      - delay: 7s
-      - lambda: 'id(ready) = true;'
+    - priority: -100
+      then:
+        - script.execute: lcd_init
+        - script.execute:
+            id: lcd_show
+            text: "Bikestation     Karte auflegen"
+            red: 255
+            green: 255
+            blue: 255
+        # Reset beim Boot: Messung sperren
+        - lambda: |-
+            id(ready) = false;
+            for (int i = 0; i < 2; i++) {
+              id(sensor_state)[i] = -1;
+              id(sensor_fails)[i] = 0;
+            }
+            id(next_sensor) = 0;
+        # Erst nach dem Hochfahren (WLAN, MQTT, Strom stabil) wird gemessen
+        - delay: 7s
+        - lambda: 'id(ready) = true;'
 
 esp32:
   board: esp32dev
@@ -53,6 +62,13 @@ globals:
   - id: ready
     type: bool
     initial_value: 'false'
+  # zuletzt gelesene RFID-Karte und wann sie zuletzt gesehen wurde (ms)
+  - id: last_uid
+    type: std::string
+    initial_value: '""'
+  - id: last_seen
+    type: uint32_t
+    initial_value: '0'
 
 mqtt:
   id: mqtt_client
@@ -66,6 +82,138 @@ mqtt:
   will_message:
     topic: bikestation/bikeslot-2/status
     payload: offline
+  on_message:
+    - topic: bikestation/entrance/oled/display
+      then:
+        - lambda: |-
+            // Node-RED schickt reinen Text; {"text":"..."} (README-Format) geht auch
+            std::string t = x;
+            size_t k = t.find("\"text\"");
+            if (!t.empty() && t[0] == '{' && k != std::string::npos) {
+              size_t a = t.find('"', t.find(':', k));
+              size_t b = a == std::string::npos ? a : t.find('"', a + 1);
+              if (b != std::string::npos) t = t.substr(a + 1, b - a - 1);
+            }
+            // Hintergrund: grün = Slot zugewiesen/gesichert, rot = voll, sonst weiß
+            int r = 255, g = 255, b = 255;
+            if (t.rfind("Park at", 0) == 0 || t.rfind("Secured", 0) == 0) { r = 0; b = 0; }
+            else if (t.find("Full") != std::string::npos) { g = 0; b = 0; }
+            id(lcd_show)->execute(t, r, g, b);
+    - topic: bikestation/entrance/gate
+      then:
+        - lambda: |-
+            // Winkel in Grad 0-180; "open"/"close" als Kurzform für 90/0
+            float deg;
+            if (x == "open") deg = 90;
+            else if (x == "close") deg = 0;
+            else {
+              char *end;
+              deg = strtof(x.c_str(), &end);
+              if (end == x.c_str()) {
+                ESP_LOGW("gate", "Ungültiger Wert: %s", x.c_str());
+                return;
+              }
+            }
+            deg = std::clamp(deg, 0.0f, 180.0f);
+            id(gate_servo).write(deg / 90.0f - 1.0f);
+            id(mqtt_client)->publish("bikestation/entrance/gate/angle", std::to_string((int) deg), 0, true);
+
+# RFID-Leser HW-147 (PN532 V3): DIP-Schalter auf I2C (SW1 ON, SW2 OFF), VCC an 3V3
+i2c:
+  sda: GPIO21
+  scl: GPIO22
+  scan: true
+  id: i2c_bus
+
+# Mifare-Classic-Karten ohne NDEF meldet der PN532 bei jedem Poll als "neu".
+# Deshalb zählt dieselbe Karte erst wieder als Tap, wenn sie 2 s weg war.
+pn532_i2c:
+  id: rfid
+  update_interval: 250ms
+  on_tag:
+    then:
+      - if:
+          condition:
+            lambda: |-
+              bool same = x == id(last_uid) && millis() - id(last_seen) < 2000;
+              id(last_uid) = x;
+              id(last_seen) = millis();
+              return !same;
+          then:
+            - logger.log:
+                format: "RFID tap %s"
+                args: ['x.c_str()']
+                level: INFO
+            - mqtt.publish_json:
+                topic: bikestation/entrance/nfc/tap
+                payload: |-
+                  std::string uid = x;
+                  uid.erase(std::remove(uid.begin(), uid.end(), '-'), uid.end());
+                  root["uid"] = uid;
+
+# Grove-LCD RGB Backlight v4: Text-Controller auf 0x3E, RGB-Backlight (PCA9633) auf 0x62.
+# 2 Zeilen à 16 Zeichen, nur ASCII (keine Umlaute).
+script:
+  - id: lcd_init
+    then:
+      - lambda: |-
+          auto reg = [](uint8_t addr, uint8_t r, uint8_t v) {
+            uint8_t buf[2] = {r, v};
+            id(i2c_bus)->write(addr, buf, 2);
+          };
+          // 2 Zeilen, Display an, löschen, Cursor läuft nach rechts
+          for (uint8_t c : {0x28, 0x0C, 0x01, 0x06}) { reg(0x3E, 0x80, c); delay(2); }
+          // Backlight: Normalbetrieb, alle 3 Farben per PWM
+          reg(0x62, 0x00, 0x00);
+          reg(0x62, 0x08, 0xFF);
+          reg(0x62, 0x01, 0x20);
+
+  - id: lcd_show
+    mode: queued
+    parameters:
+      text: string
+      red: int
+      green: int
+      blue: int
+    then:
+      - lambda: |-
+          auto reg = [](uint8_t addr, uint8_t r, uint8_t v) {
+            uint8_t buf[2] = {r, v};
+            id(i2c_bus)->write(addr, buf, 2);
+          };
+          // auf 2 Zeilen umbrechen, möglichst an einem Leerzeichen
+          std::string l1 = text, l2;
+          if (l1.size() > 16) {
+            size_t cut = l1.rfind(' ', 16);
+            if (cut == std::string::npos || cut == 0) cut = 16;
+            l2 = l1.substr(cut);
+            l1 = l1.substr(0, cut);
+            l2.erase(0, l2.find_first_not_of(' ') == std::string::npos ? l2.size() : l2.find_first_not_of(' '));
+          }
+          reg(0x3E, 0x80, 0x01); delay(2);
+          reg(0x3E, 0x80, 0x80);
+          for (char c : l1.substr(0, 16)) reg(0x3E, 0x40, c);
+          reg(0x3E, 0x80, 0xC0);
+          for (char c : l2.substr(0, 16)) reg(0x3E, 0x40, c);
+          reg(0x62, 0x04, red);
+          reg(0x62, 0x03, green);
+          reg(0x62, 0x02, blue);
+
+# Gate-Servo Tower Pro MG90S an D25: 0° ~ 0,5 ms, 180° ~ 2,4 ms bei 50 Hz.
+# auto_detach_time schaltet das Signal nach der Bewegung ab -> kein Zittern, weniger Strom.
+output:
+  - platform: ledc
+    id: gate_pwm
+    pin: GPIO25
+    frequency: 50 Hz
+
+servo:
+  - id: gate_servo
+    output: gate_pwm
+    min_level: 2.5%
+    idle_level: 7.5%
+    max_level: 12%
+    auto_detach_time: 1s
 
 # Distanz-Sensoren: Werte kommen aus dem interval-Block unten.
 # retain: false -> der Pi bekommt nach einem Neustart keinen alten Wert.

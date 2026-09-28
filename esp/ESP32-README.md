@@ -5,7 +5,7 @@ Hardware: 2x ESP32 DevKit (ESP-WROOM-32), 4x Grove Ultrasonic Ranger V2.0, WS281
 | ESP | Firmware | Name / MQTT-Client | Aufgabe |
 |---|---|---|---|
 | ESP 1 | `esp32-esphome.yaml` | `bikeslot-test` | LED-Strip (alle 4 Slots) + Ultrasonic Slot 1/2 |
-| ESP 2 | `esp32-esphome-2.yaml` | `bikeslot-2` | Ultrasonic Slot 3/4 |
+| ESP 2 | `esp32-esphome-2.yaml` | `bikeslot-2` | Ultrasonic Slot 3/4 + Eingang: RFID-Leser, LCD, Gate-Servo |
 
 Jeder ESP32 verbindet sich mit dem AP des Pi (`Hackabike-ESP`) und spricht MQTT
 mit dem Broker `192.168.50.1:1883`.
@@ -21,7 +21,7 @@ mit dem Broker `192.168.50.1:1883`.
 | | 5V | VIN ueber Diode (1N4001, Ring zum Strip) | Diode senkt Strip auf ca. 4,3 V, damit 3,3 V Datenpegel reichen |
 | | GND | GND | gemeinsame Masse |
 
-D21 und D23 sind frei (z. B. fuer den RFID-Reader).
+D21 und D23 sind frei.
 
 ## Verdrahtung ESP 2
 
@@ -30,6 +30,17 @@ D21 und D23 sind frei (z. B. fuer den RFID-Reader).
 | Ultrasonic Slot 3 | SIG | D18 | ein Pin fuer Trigger und Echo |
 | Ultrasonic Slot 4 | SIG | D19 | |
 | alle Ultrasonic | VCC / GND | 3V3 / GND | NC bleibt frei |
+| RFID HW-147 (PN532) | SDA | D21 | I2C, Adresse 0x24 |
+| | SCL | D22 | |
+| | VCC / GND | 3V3 / GND | **nicht 5V**: die I2C-Pull-ups haengen an VCC |
+| | DIP-Schalter | SW1 = ON, SW2 = OFF | I2C-Modus |
+| Grove-LCD RGB Backlight | SDA / SCL | D21 / D22 | gleicher I2C-Bus, Adressen 0x3E (Text) + 0x62 (RGB) |
+| | VCC / GND | 5V (VIN) / GND | an SDA duerfen max. ca. 3,6 V anliegen, vorher messen |
+| Servo MG90S (Gate) | Signal (orange) | D25 | |
+| | + (rot) / - (braun) | 5V / GND | besser eigenes 5V-Netzteil (GND verbinden), sonst Elko 470 uF am Servo |
+
+Nach dem Flashen oder einem Reset haengt der PN532, bis ESP 2 einmal ganz stromlos war
+(USB-Stecker ziehen). Beim normalen Einschalten startet er sauber.
 
 Nicht verwenden (beide ESPs): D34, D35, VP, VN (nur Eingang), D12, D15, D2, D0 (Strapping), GPIO 6-11 (Flash).
 
@@ -55,6 +66,10 @@ Anpassen ueber `LEDS_PER_SLOT` und `GAP` im Effekt; `num_leds = 4*LEDS_PER_SLOT 
 | `bikestation/slot{1-4}/sensor` | ESP32 -> Pi | `ok` / `no_echo` (nach 3 Fehlmessungen in Folge, retained) |
 | `bikestation/bikeslot-test/status` | ESP 1 -> Pi | `online` / `offline` |
 | `bikestation/bikeslot-2/status` | ESP 2 -> Pi | `online` / `offline` |
+| `bikestation/entrance/nfc/tap` | ESP 2 -> Pi | `{"uid":"A1B2C3D4"}`, einmal pro aufgelegter Karte (gleiche Karte erst wieder nach 2 s weg) |
+| `bikestation/entrance/oled/display` | Pi -> ESP 2 | Text fuers LCD (oder `{"text":"..."}`), 2x16 Zeichen, keine Umlaute. Hintergrund gruen bei `Park at...`/`Secured...`, rot bei `...Full...`, sonst weiss |
+| `bikestation/entrance/gate` | Pi -> ESP 2 | Servo-Winkel in Grad `0`-`180`, oder `open` (90) / `close` (0) |
+| `bikestation/entrance/gate/angle` | ESP 2 -> Pi | zuletzt angefahrener Winkel (retained) |
 
 Alle Slots auf `free` (retained, damit der ESP32 den Zustand nach Neustart direkt bekommt):
 

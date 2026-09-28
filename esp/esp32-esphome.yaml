@@ -1,5 +1,5 @@
 # ESP 1 (ESP32 DevKit): WS2812B-Strip fuer alle 4 Slots + Ultrasonic Slot 1/2 + MQTT
-# Slot 3/4 misst ESP 2 (esp32-esphome-2.yaml). D21/D23 sind frei (z. B. RFID).
+# Slot 3/4 misst ESP 2 (esp32-esphome-2.yaml). D21/D23 sind frei.
 esphome:
   name: bikeslot-test
   on_boot:
