@@ -23,7 +23,8 @@
     "includeClientData": true,
     "acceptsClientConfig": [
       "ui-notification",
-      "ui-control"
+      "ui-control",
+      "ui-template"
     ],
     "showPathInSidebar": false,
     "headerContent": "page",
@@ -83,7 +84,7 @@
     "ui": "ui_base_1",
     "path": "/bikestation",
     "layout": "grid",
-    "theme": "58826571fec7b729",
+    "theme": "skin_theme_light",
     "breakpoints": [
       {
         "name": "Default",
@@ -112,7 +113,8 @@
     "page": "3dfae6a90a7a167f",
     "width": 12,
     "height": 1,
-    "order": 1
+    "order": 1,
+    "className": "room-gruene-box"
   },
   {
     "id": "26bcbb8bfcede02c",
@@ -122,7 +124,8 @@
     "page": "3dfae6a90a7a167f",
     "width": 8,
     "height": 1,
-    "order": 2
+    "order": 2,
+    "className": "room-blaue-box"
   },
   {
     "id": "ccd65dd0a7a37ba9",
@@ -197,7 +200,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "slot summary",
-    "func": "// bikestation/slotN/state -> \"free\"|occupied. Track and count busy slots.\nlet state = flow.get('slotState') || {};\nlet slot = msg.topic.split('/')[1].replace('slot', '');\nstate[slot] = String(msg.payload).trim().toLowerCase() === 'free' ? false : true;\nflow.set('slotState', state);\nlet occupied = Object.values(state).filter(v => v === true).length;\nmsg.payload = occupied + ' Bikes';\nreturn msg;",
+    "func": "// bikestation/slotN/state -> occupied count. reserved == bike not parked yet.\nlet state = flow.get('slotState') || {};\nlet slot = msg.topic.split('/')[1].replace('slot', '');\nlet st = String(msg.payload).trim().toLowerCase();\nstate[slot] = st === 'occupied';\nflow.set('slotState', state);\nlet occupied = Object.values(state).filter(v => v === true).length;\nmsg.payload = occupied + ' Bikes';\nreturn msg;",
     "outputs": 1,
     "x": 550,
     "y": 140,
@@ -315,7 +318,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "parse s1 state",
-    "func": "// bikestation/slotN/state payload string -> friendly occupancy label\nmsg.payload = (String(msg.payload).trim().toLowerCase() === 'free') ? 'AVAILABLE' : 'IN USE';\nreturn msg;",
+    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
     "outputs": 1,
     "x": 350,
     "y": 250,
@@ -401,7 +404,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "parse s2 state",
-    "func": "// bikestation/slotN/state payload string -> friendly occupancy label\nmsg.payload = (String(msg.payload).trim().toLowerCase() === 'free') ? 'AVAILABLE' : 'IN USE';\nreturn msg;",
+    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
     "outputs": 1,
     "x": 350,
     "y": 380,
@@ -487,7 +490,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "parse s3 state",
-    "func": "// bikestation/slotN/state payload string -> friendly occupancy label\nmsg.payload = (String(msg.payload).trim().toLowerCase() === 'free') ? 'AVAILABLE' : 'IN USE';\nreturn msg;",
+    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
     "outputs": 1,
     "x": 350,
     "y": 510,
@@ -573,7 +576,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "parse s4 state",
-    "func": "// bikestation/slotN/state payload string -> friendly occupancy label\nmsg.payload = (String(msg.payload).trim().toLowerCase() === 'free') ? 'AVAILABLE' : 'IN USE';\nreturn msg;",
+    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
     "outputs": 1,
     "x": 350,
     "y": 640,
@@ -736,7 +739,7 @@
     "type": "function",
     "z": "cc25d96a5ae42c89",
     "name": "Assign Slot & Control LEDs",
-    "func": "// Input: bikestation/slotN/state (\"free\"|...) OR bikestation/entrance/nfc/tap\n// Output1: LCD (bikestation/entrance/oled/display), Output2: LED (native ESPHome light)\nlet slotState = flow.get('slotState') || {1: false, 2: false, 3: false, 4: false};\nlet reservedSlot = flow.get('reservedSlot') || null;\n\nlet outLCD = null;\nlet outLED = null;\n\nif (msg.topic.startsWith('bikestation/slot')) {\n    let slot = msg.topic.split('/')[1].replace('slot', '');\n    let occupied = String(msg.payload).trim().toLowerCase() === 'free' ? false : true;\n\n    slotState[slot] = occupied;\n    flow.set('slotState', slotState);\n\n    if (occupied) {\n        // Bike parked: whole strip RED\n        if (reservedSlot == slot) { flow.set('reservedSlot', null); }\n        outLED = {\n            topic: 'bikeslot-test/light/strip/command',\n            payload: JSON.stringify({ state: 'ON', brightness: 150, color: {r:255, g:0, b:0} })\n        };\n        outLCD = {\n            topic: 'bikestation/entrance/oled/display',\n            payload: `Secured in Slot ${slot}!`\n        };\n    } else {\n        // Bike removed: whole strip GREEN\n        outLED = {\n            topic: 'bikeslot-test/light/strip/command',\n            payload: JSON.stringify({ state: 'ON', brightness: 150, color: {r:0, g:255, b:0} })\n        };\n    }\n}\nelse if (msg.topic.includes('tap') || msg.topic.includes('nfc')) {\n    let targetSlot = null;\n    for (let i = 1; i <= 4; i++) {\n        if (!slotState[i]) { targetSlot = i; break; }\n    }\n    if (targetSlot) {\n        flow.set('reservedSlot', targetSlot);\n        outLCD = {\n            topic: 'bikestation/entrance/oled/display',\n            payload: `Park at Slot ${targetSlot}`\n        };\n        // Reserved: whole strip BLUE\n        outLED = {\n            topic: 'bikeslot-test/light/strip/command',\n            payload: JSON.stringify({ state: 'ON', brightness: 150, color: {r:0, g:0, b:255} })\n        };\n    } else {\n        outLCD = {\n            topic: 'bikestation/entrance/oled/display',\n            payload: 'Station Full!'\n        };\n    }\n}\n\nreturn [outLCD, outLED];",
+    "func": "// Input: bikestation/slotN/state OR bikestation/entrance/nfc/tap\n// Output1: LCD (bikestation/entrance/oled/display), Output2: slot state publish\nlet slotState = flow.get('slotState') || {1: false, 2: false, 3: false, 4: false};\nlet reservedSlot = flow.get('reservedSlot') || null;\n\nlet outLCD = null;\nlet outState = null;\n\nif (msg.topic.startsWith('bikestation/slot')) {\n    let slot = msg.topic.split('/')[1].replace('slot', '');\n    let st = String(msg.payload).trim().toLowerCase();\n    let occupied = st === 'occupied';\n    slotState[slot] = occupied;\n    flow.set('slotState', slotState);\n    if (occupied && reservedSlot == slot) {\n        flow.set('reservedSlot', null);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Secured in Slot ' + slot + '!' };\n    }\n}\nelse if (msg.topic.includes('tap') || msg.topic.includes('nfc')) {\n    let targetSlot = null;\n    for (let i = 1; i <= 4; i++) {\n        if (!slotState[i]) { targetSlot = i; break; }\n    }\n    if (targetSlot) {\n        flow.set('reservedSlot', targetSlot);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Park at Slot ' + targetSlot };\n        outState = { topic: 'bikestation/slot' + targetSlot + '/state', payload: 'reserved', retain: true };\n    } else {\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Station Full!' };\n    }\n}\n\nreturn [outLCD, outState];",
     "outputs": 2,
     "timeout": 0,
     "noerr": 0,
@@ -750,7 +753,7 @@
         "out_lcd_screen"
       ],
       [
-        "out_led_hardware"
+        "out_slot_state"
       ]
     ]
   },
@@ -773,24 +776,6 @@
     "wires": []
   },
   {
-    "id": "out_led_hardware",
-    "type": "mqtt out",
-    "z": "cc25d96a5ae42c89",
-    "name": "Strip LEDs",
-    "topic": "",
-    "qos": "0",
-    "retain": "false",
-    "respTopic": "",
-    "contentType": "",
-    "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "broker_local",
-    "x": 1220,
-    "y": 580,
-    "wires": []
-  },
-  {
     "id": "dist_in_1",
     "type": "mqtt in",
     "z": "cc25d96a5ae42c89",
@@ -807,8 +792,7 @@
     "y": 340,
     "wires": [
       [
-        "a7b8797171c84f6d",
-        "56a6534916ee0486"
+        "fn_occ_1"
       ]
     ]
   },
@@ -829,8 +813,7 @@
     "y": 470,
     "wires": [
       [
-        "50e5077c9051197c",
-        "56a6534916ee0486"
+        "fn_occ_2"
       ]
     ]
   },
@@ -851,8 +834,7 @@
     "y": 600,
     "wires": [
       [
-        "119680028c581e7c",
-        "56a6534916ee0486"
+        "fn_occ_3"
       ]
     ]
   },
@@ -873,67 +855,185 @@
     "y": 730,
     "wires": [
       [
-        "67b5326c23b611b3",
+        "fn_occ_4"
+      ]
+    ]
+  },
+  {
+    "id": "skin_theme_light",
+    "type": "ui-theme",
+    "name": "Glassmorphism Light (skin)",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094CE",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "skin_css_sitestyle",
+    "type": "ui-template",
+    "z": "cc25d96a5ae42c89",
+    "group": "",
+    "page": "",
+    "ui": "ui_base_1",
+    "name": "Glassmorphism CSS",
+    "order": 1,
+    "width": 0,
+    "height": 0,
+    "head": "",
+    "format": "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');\n\n.v-main {\n  background-image: url('https://images.hdqwalls.com/wallpapers/landscape-alpine-mountains-landscape-5k-1k.jpg');\n  background-size: cover;\n  background-repeat: no-repeat;\n  background-attachment: fixed;\n}\n\n.v-main::before {\n  content: '';\n  position: fixed;\n  inset: 0;\n  background: rgba(0, 0, 0, 0.08);\n  pointer-events: none;\n  z-index: 0;\n}\n\nbody {\n  font-family: 'Inter', sans-serif !important;\n}\n\n.nrdb-ui-group .v-card {\n  background: rgba(255, 255, 255, 0.1) !important;\n  backdrop-filter: blur(40px) saturate(180%) !important;\n  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;\n  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;\n  border-top: 0.5px solid rgba(255, 255, 255, 0.5) !important;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 0.5px 0 rgba(255, 255, 255, 0.6) !important;\n  border-radius: 16px !important;\n}\n\n.room-blaue-box .v-card { border-left: 4px solid #0094CE !important; }\n.room-gruene-box .v-card { border-left: 4px solid #3a9e3a !important; }\n\n.last-update-bar {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  padding: 4px 8px;\n  font-size: 13px;\n}\n.lu-item {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n.lu-dot {\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  display: inline-block;\n}\n.lu-name {\n  color: rgba(255,255,255,0.7);\n  font-weight: 500;\n}\n.lu-time {\n  color: #fff;\n  font-weight: 600;\n}",
+    "storeOutMessages": true,
+    "passthru": false,
+    "resendOnRefresh": true,
+    "templateScope": "site:style",
+    "className": "",
+    "x": 900,
+    "y": 780,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "skin_statusbar",
+    "type": "ui-template",
+    "z": "cc25d96a5ae42c89",
+    "group": "ab14b8c0991b6a02",
+    "page": "",
+    "ui": "ui_base_1",
+    "name": "Status Bar",
+    "order": 3,
+    "width": 0,
+    "height": 0,
+    "head": "",
+    "format": "<template>\n<Teleport v-if=\"mounted\" to=\"#app-bar-actions\">\n<div style=\"display:flex;gap:14px;align-items:center;padding:0 8px;font-size:13px\">\n  <div v-for=\"room in msg.payload\" :key=\"room.name\" style=\"display:flex;align-items:center;gap:4px\">\n    <span style=\"width:8px;height:8px;border-radius:50%;display:inline-block\" :style=\"'background:'+room.color\"></span>\n    <span style=\"color:rgba(0,0,0,0.8);font-weight:500\">{{room.name}}</span>\n    <span style=\"color:#222;font-weight:600\"> {{room.time}}</span>\n  </div>\n</div>\n</Teleport>\n</template>\n\n<script>\nexport default {\n  data() { return { mounted: false } },\n  mounted() { this.mounted = true }\n}\n</script>",
+    "storeOutMessages": true,
+    "passthru": false,
+    "resendOnRefresh": true,
+    "templateScope": "local",
+    "className": "",
+    "x": 650,
+    "y": 520,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "out_slot_state",
+    "type": "mqtt out",
+    "z": "cc25d96a5ae42c89",
+    "name": "Publish slot state",
+    "topic": "",
+    "qos": "",
+    "retain": "true",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "broker_local",
+    "x": 940,
+    "y": 900,
+    "wires": []
+  },
+  {
+    "id": "fn_occ_1",
+    "type": "function",
+    "z": "cc25d96a5ae42c89",
+    "name": "Occ Dec Slot 1",
+    "func": "var dist = parseFloat(msg.payload);\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot1/state';\nmsg.retain = true;\nreturn [msg, null];",
+    "outputs": 2,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 620,
+    "y": 884,
+    "wires": [
+      [
+        "out_slot_state"
+      ],
+      [
+        "a7b8797171c84f6d",
         "56a6534916ee0486"
       ]
     ]
   },
   {
-    "id": "led_state_in",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "led/strip/state",
-    "topic": "bikeslot-test/light/strip/state",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 1300,
-    "wires": [
-      [
-        "fn_led_state"
-      ]
-    ]
-  },
-  {
-    "id": "fn_led_state",
+    "id": "fn_occ_2",
     "type": "function",
     "z": "cc25d96a5ae42c89",
-    "name": "LED strip state",
-    "func": "// bikeslot-test/light/strip/state JSON -> \"ON \u00b7 77 \u00b7 rgb(255,255,255) \u00b7 Slots\"\nlet p; try { p = JSON.parse(msg.payload); } catch (e) { return msg; }\nlet c = p.color || {};\nlet eff = p.effect || '-';\nmsg.payload = (p.state === 'ON' ? 'ON' : 'OFF') +\n    ' \u00b7 ' + (p.brightness !== undefined ? p.brightness : '-') +\n    ' \u00b7 rgb(' + (c.r !== undefined ? c.r : 0) + ',' + (c.g !== undefined ? c.g : 0) + ',' + (c.b !== undefined ? c.b : 0) + ')' +\n    ' \u00b7 ' + eff;\nreturn msg;",
-    "outputs": 1,
-    "timeout": 0,
+    "name": "Occ Dec Slot 2",
+    "func": "var dist = parseFloat(msg.payload);\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot2/state';\nmsg.retain = true;\nreturn [msg, null];",
+    "outputs": 2,
     "noerr": 0,
     "initialize": "",
     "finalize": "",
     "libs": [],
-    "x": 350,
-    "y": 1300,
+    "x": 620,
+    "y": 888,
     "wires": [
       [
-        "led_state_text"
+        "out_slot_state"
+      ],
+      [
+        "50e5077c9051197c",
+        "56a6534916ee0486"
       ]
     ]
   },
   {
-    "id": "led_state_text",
-    "type": "ui-text",
+    "id": "fn_occ_3",
+    "type": "function",
     "z": "cc25d96a5ae42c89",
-    "group": "ab14b8c0991b6a02",
-    "order": 4,
-    "width": 4,
-    "height": 1,
-    "name": "LED Strip",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#00e676",
-    "value": "OFF",
-    "x": 550,
-    "y": 1300,
-    "wires": []
+    "name": "Occ Dec Slot 3",
+    "func": "var dist = parseFloat(msg.payload);\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot3/state';\nmsg.retain = true;\nreturn [msg, null];",
+    "outputs": 2,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 620,
+    "y": 892,
+    "wires": [
+      [
+        "out_slot_state"
+      ],
+      [
+        "119680028c581e7c",
+        "56a6534916ee0486"
+      ]
+    ]
+  },
+  {
+    "id": "fn_occ_4",
+    "type": "function",
+    "z": "cc25d96a5ae42c89",
+    "name": "Occ Dec Slot 4",
+    "func": "var dist = parseFloat(msg.payload);\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot4/state';\nmsg.retain = true;\nreturn [msg, null];",
+    "outputs": 2,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 620,
+    "y": 896,
+    "wires": [
+      [
+        "out_slot_state"
+      ],
+      [
+        "67b5326c23b611b3",
+        "56a6534916ee0486"
+      ]
+    ]
   }
 ]
