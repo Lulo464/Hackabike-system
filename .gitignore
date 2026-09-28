@@ -1,0 +1,27 @@
+# runtime state — bind mounts, hold the persistence DB and logs
+mosquitto/data/
+mosquitto/log/
+
+# node
+node_modules/
+**/node_modules/
+npm-debug.log*
+
+# node-RED
+nodered/flows_cred.json
+
+# secrets — never commit real values
+.env
+.env.local
+
+# logs
+*.log
+
+# editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+__pycache__/
+*.pyc

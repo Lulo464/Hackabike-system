@@ -1,0 +1,27 @@
+services:
+  nodered:
+    build:
+      context: .
+      dockerfile: dockerfiles/nodered/Dockerfile
+    container_name: bikestation-nodered
+    depends_on:
+      - mosquitto
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./nodered:/data
+    restart: unless-stopped
+
+  mosquitto:
+    build:
+      context: .
+      dockerfile: dockerfiles/mosquitto/Dockerfile
+    container_name: bikestation-mosquitto
+    ports:
+      - "1883:1883"   # MQTT over TCP   (ESP32 -> broker)
+      - "9001:9001"   # MQTT over WS    (browser / Node-RED)
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
