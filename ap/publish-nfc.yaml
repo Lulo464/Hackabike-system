@@ -1,0 +1,10 @@
+# Publish an NFC check-in / check-out event.
+# Called from the pn532 on_tag trigger.
+- sensor.publish:
+    name: "NFC tap"
+    state: !lambda |-
+      std::string uid = id(nfc_uid_hex);
+      return ("{\"uid\":\"" + uid + "\",\"timestamp\":\"" +
+              to_string(current_time_str) + "\"}").c_str();
+    qos: 1
+    retain: false

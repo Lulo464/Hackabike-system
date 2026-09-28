@@ -1,0 +1,212 @@
+# ESP32-S3 — Smart Bikestation sensor node (ESPHome)
+#
+# Joins the Pi's own AP (Hackabike-ESP) and publishes to Mosquitto.
+# Publish-only: the board never needs internet, which is why the Pi AP has
+# no NAT or IP forwarding. Remove the static IP to fall back to DHCP —
+# the broker address stays fixed either way.
+#
+# VALIDATION: not machine-verified. ESPHome is not installed on the Pi, so
+# `esphome config` was never run against this file. The wifi/mqtt/display
+# sections follow the documented schema; the sensor sections are the part
+# most likely to need adjustment once the I2C topology is decided.
+#
+# Run before flashing:  esphome config esp32-esphome.yaml
+
+substitutions:
+  device_name: bikestation-esp32
+  broker_host: 192.168.50.1
+  esp32_ip: 192.168.50.10
+  esp32_netmask: 255.255.255.0
+  esp32_gateway: 192.168.50.1
+  ap_ssid: Hackabike-ESP
+  ap_password: hackabike2026
+
+esphome:
+  name: ${device_name}
+  friendly_name: Smart Bikestation Node
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+# ---------------------------------------------------------------- WiFi
+wifi:
+  ssid: ${ap_ssid}
+  password: ${ap_password}
+  # Static so the broker address never depends on a DHCP lease.
+  manual:
+    ip: ${esp32_ip}
+    subnet: ${esp32_netmask}
+    gateway: ${esp32_gateway}
+    dns1: ${broker_host}
+  ap:
+    # Fallback: if the Pi AP is down, run our own so a phone can still reach
+    # the dashboard through this board.
+    ssid: "${device_name}-fallback"
+    password: "hackabike2026"
+  power_save_mode: none
+  reboot_timeout: 15min
+
+captive_portal:
+
+# ---------------------------------------------------------------- I2C
+# Single shared bus. Address map from docs/Hackathon.md.
+#
+# UNRESOLVED: four VL53L1X distance sensors all answer to 0x29 at boot, so a
+# single bus cannot address them independently. Pick one:
+#   - TCA9548A I2C multiplexer (recommended)
+#   - move sensors onto separate buses
+#   - VL53L1X modules with configurable addresses
+#
+# Also: the PCF8574 (0x20) is a digital GPIO expander and CANNOT read I2C
+# distance sensors. The current docs conflate the two.
+i2c:
+  - id: bus_main
+    sda: 8
+    scl: 9
+    scan: true
+    frequency: 400kHz
+
+  - platform: pn532
+    id: nfc_reader
+    bus: bus_main
+    address: 0x24
+    update_interval: 1s
+
+# ---------------------------------------------------------------- GPIO expander
+pcf8574:
+  - id: expander
+    address: 0x20
+    update_interval: 5s
+    on_idle:
+      - logger.log: "PCF8574 idle"
+
+# ---------------------------------------------------------------- LED strip
+# WS2812B, 1 m / 60 LEDs, cut into 4 segments of 15:
+#   slot 1 -> 0-14, slot 2 -> 15-29, slot 3 -> 30-44, slot 4 -> 45-59
+#
+# NOTE: docs/Hackathon.md puts the strip on GPIO 8, but I2C SDA also defaults
+# to 8. Here I2C keeps 8/9 and the strip moves to GPIO 48. Pick one and update
+# the docs to match.
+light:
+  - platform: neopixelbus
+    id: led_strip
+    name: WS2812B 60 LED strip
+    type: GRB
+    variant: WS2812
+    pin: 48
+    num_leds: 60
+
+# ---------------------------------------------------------------- Sensors
+sensor:
+  # One ADXL345 shared by all four slots (0x53). A bike being moved or lifted
+  # is the sabotage signal. With one accelerometer, attributing the hit to a
+  # specific slot is approximate.
+  - platform: adxl345
+    id: vibration
+    address: 0x53
+    update_interval: 200ms
+    range: 16g
+    vibration_threshold: 0.1g
+    vibration: THRESHOLD
+    on_value:
+      - logger.log:
+          format: "vibration %.3f g"
+          args: [ 'x' ]
+      - script: !include publish-slot.yaml
+
+# ---------------------------------------------------------------- NFC
+binary_sensor:
+  - platform: pn532
+    id: nfc_tap
+    nfc_reader_id: nfc_reader
+    on_tag:
+      - logger.log: "NFC tag tapped"
+      - lambda: |-
+          char buf[8];
+          for (int i = 0; i < 4 && i < (int) tag.nfc_data.size(); i++) {
+            snprintf(buf, sizeof(buf), "%02X", tag.nfc_data[i]);
+            id(nfc_uid_hex) += buf;
+          }
+      - script: !include publish-nfc.yaml
+
+# ---------------------------------------------------------------- Display
+# 1.3" SSD1306 OLED. Text arrives from the Pi over MQTT so an operator can
+# greet a rider remotely.
+display:
+  - platform: ssd1306_i2c
+    id: oled
+    address: 0x3C
+    width: 128
+    height: 64
+    lambda: |-
+      it.printf(0, 0, id(oled_font), "Hackabike");
+      it.printf(0, 18, id(oled_font), "%s", id(oled_message).c_str());
+      it.print(0, 38, id(oled_font), "slot ");
+      it.printf(32, 38, id(oled_font), "%d", id(slot_global));
+
+globals:
+  - id: sensor_state_json
+    type: std::string
+    restore_value: no
+  - id: slot_global
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: oled_message
+    type: std::string
+    restore_value: no
+    initial_value: '"Ready"'
+  - id: oled_font
+    type: font
+    init:
+      file: "gfonts://Roboto"
+      size: 20
+  - id: nfc_uid_hex
+    type: std::string
+    restore_value: no
+    initial_value: '""'
+
+# ---------------------------------------------------------------- MQTT
+mqtt:
+  broker: ${broker_host}
+  port: 1883
+  # Drop the two !secret lines if you leave allow_anonymous on the broker.
+  # username: !secret mqtt_username
+  # password: !secret mqtt_password
+  topic_prefix: bikestation/${device_name}
+  birth_message:
+    topic: bikestation/system/status
+    payload: '{"status":"online","device":"${device_name}"}'
+    retain: true
+    qos: 1
+  will_message:
+    topic: bikestation/system/status
+    payload: '{"status":"offline","device":"${device_name}"}'
+    retain: true
+    qos: 1
+  shutdown_message:
+    topic: bikestation/system/status
+    payload: '{"status":"shutdown","device":"${device_name}"}'
+    retain: true
+    qos: 1
+
+  # The only thing the board consumes: LED state and OLED text from the Pi.
+  on_message:
+    - topic: bikestation/${device_name}/led
+      then:
+        - script: !include handle-led.yaml
+    - topic: bikestation/${device_name}/oled
+      then:
+        - lambda: |-
+            // payload: {"text":"Welcome!"}
+            auto parts = str_splits<std::string>(x, ',');
+            if (parts.size() >= 2) id(oled_message) = parts[1];
+    - topic: bikestation/${device_name}/slot
+      then:
+        - lambda: |-
+            // payload: {"slot":3}
+            auto parts = str_splits<std::string>(x, ',');
+            if (parts.size() >= 2) id(slot_global) = atoi(parts[1].c_str());

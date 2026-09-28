@@ -1,0 +1,16 @@
+# Apply a colour to one slot's 15-LED segment.
+# Wire the strip on GPIO 48 (not 8 — that is I2C SDA). 60 LEDs, 4 slots.
+# Requires: light id `led_strip`, global id `slot_global`
+- lambda: |-
+    // payload: {"slot":1,"color":"#00FF00","blink":false}
+    auto parts = str_splits<std::string>(x, ',');
+    if (parts.size() < 2) return;
+    int slot = atoi(parts[0].c_str());
+    auto rgb = parse_color(parts[1].c_str());
+    if (slot < 1 || slot > 4) return;
+    for (int i = 0; i < 15; i++) {
+      auto *pixel = id(led_strip).addressable_at((slot - 1) * 15 + i);
+      pixel->set(RGBColor(rgb.r, rgb.g, rgb.b));
+    }
+    id(led_strip).show();
+    id(slot_global) = slot;

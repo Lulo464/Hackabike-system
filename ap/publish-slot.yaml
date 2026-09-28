@@ -1,0 +1,13 @@
+# Publish a vibration / proximity reading for one slot.
+# Called from the ADXL345 on_value trigger.
+# Requires: sensor id `vibration`, global id `slot_global`
+- lambda: |-
+    id(sensor_state_json) = std::string("{\"device\":\"") + "${device_name}" +
+                            "\",\"slot\":" + to_string(id(slot_global)) +
+                            ",\"g_force\":" + to_string(id(vibration).state) + "}";
+- sensor.publish:
+    name: "bikestation/slot vibration"
+    state: !lambda return id(sensor_state_json).c_str();
+    state_class: measurement
+    qos: 1
+    retain: false
