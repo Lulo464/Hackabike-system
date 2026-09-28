@@ -1,0 +1,321 @@
+[
+  {
+    "id": "tab_distance",
+    "type": "tab",
+    "label": "Distance Test",
+    "disabled": false,
+    "info": "Minimal flow: proxímity MQTT → dashboard gauge/text. No ESP32 needed for the test injector.",
+    "env": []
+  },
+  {
+    "id": "ui_base_dist",
+    "type": "ui-base",
+    "name": "Bikestation",
+    "path": "/dashboard",
+    "appIcon": "",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "page",
+    "navigationStyle": "default",
+    "titleBarStyle": "default",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 1,
+    "showDisconnectNotification": true,
+    "allowInstall": false,
+    "theme": "ui_theme_dist"
+  },
+  {
+    "id": "ui_theme_dist",
+    "type": "ui-theme",
+    "name": "Bikestation Dark",
+    "default": {
+      "baseColor": "#1f2430",
+      "baseFont": "Verdana,Geneva,DejaVu Sans,sans-serif",
+      "theme": "dark",
+      "sizes": {
+        "baseFontSize": "16px",
+        "headerFontSize": "28px",
+        "widgetFontSize": "18px",
+        "widgetBorderRadius": "6px",
+        "widgetFontWeight": "bold",
+        "widgetTextColor": "#E4E7EB",
+        "widgetBorder": "none",
+        "widgetShadow": "none",
+        "widgetPadding": "10px",
+        "widgetMargin": "8px",
+        "widgetBackground": "#2b3244",
+        "groupBackground": "#161b26",
+        "groupBorder": "2px solid #3d475c",
+        "groupBorderRadius": "8px",
+        "tabBackground": "#161b26",
+        "tabBorder": "2px solid #3d475c",
+        "tabBorderRadius": "8px",
+        "tabSelectedBackground": "#3d475c",
+        "tabSelectedBorderColor": "#4a90d9",
+        "groupTitleFontSize": "20px",
+        "groupTitleColor": "#ffffff",
+        "groupTitleAlign": "left"
+      }
+    }
+  },
+  {
+    "id": "ui_page_dist",
+    "type": "ui-page",
+    "z": "tab_distance",
+    "name": "Distance",
+    "ui": "ui_base_dist",
+    "path": "/distance",
+    "icon": "home",
+    "layout": "grid",
+    "theme": "ui_theme_dist",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ],
+    "order": 0,
+    "className": "",
+    "visible": true,
+    "disabled": false
+  },
+  {
+    "id": "grp_distance",
+    "type": "ui-group",
+    "z": "tab_distance",
+    "name": "Distance",
+    "page": "ui_page_dist",
+    "width": 6,
+    "height": 1,
+    "order": -1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default"
+  },
+  {
+    "id": "broker_distance",
+    "type": "mqtt-broker",
+    "name": "bikestation-broker",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "nodered-distance",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "userDefinedName": false
+  },
+  {
+    "id": "mqtt_distance_in",
+    "type": "mqtt in",
+    "z": "tab_distance",
+    "name": "slot1/proximity",
+    "topic": "bikestation/slot/1/proximity",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "broker_distance",
+    "nl": false,
+    "rap": true,
+    "inputs": 0,
+    "outputs": 1,
+    "x": 200,
+    "y": 120,
+    "wires": [
+      [
+        "parse_distance"
+      ]
+    ]
+  },
+  {
+    "id": "parse_distance",
+    "type": "function",
+    "z": "tab_distance",
+    "name": "parse distance_cm",
+    "func": "// the payload may already be an object (datatype auto-detect)\nlet p = typeof msg.payload === 'string' ? JSON.parse(msg.payload) : msg.payload\n// also tolerate a bare number\nif (typeof p === 'number') p = { distance_cm: p, occupied: false }\nmsg.distance_cm = p.distance_cm\nmsg.occupied = p.occupied === true\nmsg.payload = p.distance_cm\nreturn msg",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 360,
+    "y": 120,
+    "wires": [
+      [
+        "gauge_distance",
+        "text_distance"
+      ]
+    ]
+  },
+  {
+    "id": "gauge_distance",
+    "type": "ui-gauge",
+    "z": "tab_distance",
+    "name": "Distance",
+    "group": "grp_distance",
+    "order": 0,
+    "width": 6,
+    "height": 3,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "Distance [cm]",
+    "alwaysShowTitle": true,
+    "floatingTitlePosition": "top-left",
+    "value": "payload",
+    "valueType": "msg",
+    "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 35
+      },
+      {
+        "color": "#c92a2a",
+        "from": 80
+      }
+    ],
+    "min": 0,
+    "max": 200,
+    "sizeThickness": 12,
+    "sizeGap": 4,
+    "sizeKeyThickness": 8,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "x": 560,
+    "y": 80,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "text_distance",
+    "type": "ui-text",
+    "z": "tab_distance",
+    "name": "Distance value",
+    "group": "grp_distance",
+    "order": 1,
+    "width": 6,
+    "height": 1,
+    "label": "Distance",
+    "format": "{{msg.payload}} cm",
+    "layout": "row-spread",
+    "style": false,
+    "font": "Helvetica",
+    "fontSize": 32,
+    "color": "#E4E7EB",
+    "wrapText": false,
+    "className": "",
+    "value": "payload",
+    "valueType": "msg",
+    "x": 560,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "test_injector",
+    "type": "inject",
+    "z": "tab_distance",
+    "name": "test trigger",
+    "props": [
+      {
+        "p": "payload",
+        "v": "",
+        "vt": "date"
+      }
+    ],
+    "repeat": "3",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 200,
+    "wires": [
+      [
+        "test_random"
+      ]
+    ]
+  },
+  {
+    "id": "test_random",
+    "type": "function",
+    "z": "tab_distance",
+    "name": "random 10..160",
+    "func": "// simulate the ESP32: a slow 'breathing' wave makes the gauge move visibly\nconst t = Date.now() / 1000\nconst d = Math.round(85 + 75 * Math.sin(t * 0.7))\nmsg.payload = { distance_cm: d, occupied: d < 35 }\nmsg.topic = 'bikestation/slot/1/proximity'\nreturn msg",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 340,
+    "y": 200,
+    "wires": [
+      [
+        "mqtt_distance_out"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_distance_out",
+    "type": "mqtt out",
+    "z": "tab_distance",
+    "name": "publish proximity",
+    "topic": "bikestation/slot/1/proximity",
+    "qos": "1",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "broker_distance",
+    "x": 500,
+    "y": 200,
+    "wires": []
+  }
+]

@@ -1,0 +1,2034 @@
+[
+  {
+    "id": "tab_bikestation",
+    "type": "tab",
+    "label": "Smart Bikestation",
+    "disabled": false,
+    "info": "MQTT dashboard for the 4-slot Smart Bikestation.",
+    "env": []
+  },
+  {
+    "id": "ui_base_1",
+    "type": "ui-base",
+    "name": "Bikestation",
+    "path": "/dashboard",
+    "appIcon": "",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "page",
+    "navigationStyle": "default",
+    "titleBarStyle": "default",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 1,
+    "showDisconnectNotification": true,
+    "allowInstall": false,
+    "theme": "ui_theme_1",
+    "x": 320,
+    "y": 40
+  },
+  {
+    "id": "ui_theme_1",
+    "type": "ui-theme",
+    "name": "Bikestation Dark",
+    "default": {
+      "baseColor": "#1f2430",
+      "baseFont": "Verdana,Geneva,DejaVu Sans,sans-serif",
+      "theme": "dark",
+      "sizes": {
+        "baseFontSize": "16px",
+        "headerFontSize": "28px",
+        "widgetFontSize": "18px",
+        "widgetBorderRadius": "6px",
+        "widgetFontWeight": "bold",
+        "widgetTextColor": "#E4E7EB",
+        "widgetBorder": "none",
+        "widgetShadow": "none",
+        "widgetPadding": "10px",
+        "widgetMargin": "8px",
+        "widgetBackground": "#2b3244",
+        "groupBackground": "#161b26",
+        "groupBorder": "2px solid #3d475c",
+        "groupBorderRadius": "8px",
+        "tabBackground": "#161b26",
+        "tabBorder": "2px solid #3d475c",
+        "tabBorderRadius": "8px",
+        "tabSelectedBackground": "#3d475c",
+        "tabSelectedBorderColor": "#4a90d9",
+        "groupTitleFontSize": "20px",
+        "groupTitleColor": "#ffffff",
+        "groupTitleAlign": "left"
+      }
+    },
+    "x": 520,
+    "y": 80
+  },
+  {
+    "id": "ui_page_main",
+    "type": "ui-page",
+    "z": "tab_bikestation",
+    "name": "Bikestation",
+    "ui": "ui_base_1",
+    "theme": "ui_theme_1",
+    "layout": "grid",
+    "order": 0,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ]
+  },
+  {
+    "id": "broker_local",
+    "type": "mqtt-broker",
+    "name": "bikestation-broker",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "nodered-bikestation",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "grp_status",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "System",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 0,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "grp_slots",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "Slots",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 1,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "grp_led",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "LED Control",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 2,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "grp_oled",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "OLED Display",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 3,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "grp_charts",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "History",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 4,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "grp_nfc",
+    "type": "ui-group",
+    "z": "tab_bikestation",
+    "name": "NFC Check-in / out",
+    "page": "ui_page_main",
+    "style": {
+      "label": true
+    },
+    "order": 5,
+    "width": 12,
+    "height": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0001",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "system/status",
+    "topic": "bikestation/system/status",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 60,
+    "wires": [
+      [
+        "fn0002"
+      ]
+    ]
+  },
+  {
+    "id": "fn0002",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse status",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.status || '?') + '   |   last seen ' + (p.timestamp || '-');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 60,
+    "wires": [
+      [
+        "t0003"
+      ]
+    ]
+  },
+  {
+    "id": "t0003",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "System Status",
+    "group": "grp_status",
+    "order": 1,
+    "width": 12,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 18,
+    "color": "#8be9a8",
+    "value": "waiting for ESP32...",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0004",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "system/alerts",
+    "topic": "bikestation/system/alerts",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 120,
+    "wires": [
+      [
+        "fn0005"
+      ]
+    ]
+  },
+  {
+    "id": "fn0005",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse alert",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.type || 'alert').toUpperCase() + (p.slot ? ' - slot ' + p.slot : '') + '   @ ' + (p.timestamp || '-');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 120,
+    "wires": [
+      [
+        "t0006"
+      ]
+    ]
+  },
+  {
+    "id": "t0006",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Latest Alert",
+    "group": "grp_status",
+    "order": 2,
+    "width": 12,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#ff6b6b",
+    "value": "no alerts",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c0007",
+    "type": "ui-chart",
+    "z": "tab_bikestation",
+    "name": "Distance History",
+    "group": "grp_charts",
+    "order": 1,
+    "width": 12,
+    "height": 9,
+    "chartType": "line",
+    "category": "line",
+    "categoryType": "line",
+    "xAxisLabel": "",
+    "xAxisProperty": "payload",
+    "xAxisPropertyType": "msg",
+    "xAxisType": "time",
+    "xAxisFormat": "",
+    "xAxisFormatType": "auto",
+    "xmin": "",
+    "xmax": "",
+    "yAxisLabel": "cm",
+    "yAxisProperty": "payload",
+    "yAxisPropertyType": "msg",
+    "ymin": 0,
+    "ymax": 200,
+    "bins": 20,
+    "action": "",
+    "stackSeries": false,
+    "pointShape": "circle",
+    "pointRadius": 4,
+    "showLegend": true,
+    "removeOlder": 1,
+    "removeOlderUnit": 3600,
+    "removeOlderPoints": "",
+    "colors": [],
+    "textColorDefault": true,
+    "textColor": "#ffffff",
+    "gridColorDefault": true,
+    "gridColor": "#555555",
+    "className": "",
+    "interpolation": "linear",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c0008",
+    "type": "ui-chart",
+    "z": "tab_bikestation",
+    "name": "Vibration History",
+    "group": "grp_charts",
+    "order": 2,
+    "width": 12,
+    "height": 9,
+    "chartType": "line",
+    "category": "line",
+    "categoryType": "line",
+    "xAxisLabel": "",
+    "xAxisProperty": "payload",
+    "xAxisPropertyType": "msg",
+    "xAxisType": "time",
+    "xAxisFormat": "",
+    "xAxisFormatType": "auto",
+    "xmin": "",
+    "xmax": "",
+    "yAxisLabel": "g",
+    "yAxisProperty": "payload",
+    "yAxisPropertyType": "msg",
+    "ymin": 0,
+    "ymax": 1,
+    "bins": 20,
+    "action": "",
+    "stackSeries": false,
+    "pointShape": "circle",
+    "pointRadius": 4,
+    "showLegend": true,
+    "removeOlder": 1,
+    "removeOlderUnit": 3600,
+    "removeOlderPoints": "",
+    "colors": [],
+    "textColorDefault": true,
+    "textColor": "#ffffff",
+    "gridColorDefault": true,
+    "gridColor": "#555555",
+    "className": "",
+    "interpolation": "linear",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0009",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot1/proximity",
+    "topic": "bikestation/slot/1/proximity",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 290,
+    "wires": [
+      [
+        "fn0010",
+        "g0012",
+        "c0007"
+      ]
+    ]
+  },
+  {
+    "id": "fn0010",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot1 proximity",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = 'Slot 1:  ' + (p.occupied ? 'OCCUPIED' : 'FREE') + '   (' + p.distance_cm + ' cm)';\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 290,
+    "wires": [
+      [
+        "t0011"
+      ]
+    ]
+  },
+  {
+    "id": "t0011",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 1 state",
+    "group": "grp_slots",
+    "order": 1,
+    "width": 6,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 18,
+    "color": "#0094CE",
+    "value": "Slot 1: --",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0012",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 1 distance",
+    "group": "grp_slots",
+    "order": 2,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 60
+      },
+      {
+        "color": "#c92a2a",
+        "from": 120
+      }
+    ],
+    "min": 0,
+    "max": 200,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0013",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot1/vibration",
+    "topic": "bikestation/slot/1/vibration",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 330,
+    "wires": [
+      [
+        "fn0014",
+        "g0016",
+        "c0008"
+      ]
+    ]
+  },
+  {
+    "id": "fn0014",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot1 vibration",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.alert ? 'ALERT' : 'OK');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 330,
+    "wires": [
+      [
+        "t0015"
+      ]
+    ]
+  },
+  {
+    "id": "t0015",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 1 vibration state",
+    "group": "grp_slots",
+    "order": 3,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#e4e7eb",
+    "value": "OK",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0016",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 1 vibration",
+    "group": "grp_slots",
+    "order": 4,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "g",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 0.3
+      },
+      {
+        "color": "#c92a2a",
+        "from": 0.7
+      }
+    ],
+    "min": 0,
+    "max": 1,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0017",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot2/proximity",
+    "topic": "bikestation/slot/2/proximity",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 380,
+    "wires": [
+      [
+        "fn0018",
+        "g0020",
+        "c0007"
+      ]
+    ]
+  },
+  {
+    "id": "fn0018",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot2 proximity",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = 'Slot 2:  ' + (p.occupied ? 'OCCUPIED' : 'FREE') + '   (' + p.distance_cm + ' cm)';\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 380,
+    "wires": [
+      [
+        "t0019"
+      ]
+    ]
+  },
+  {
+    "id": "t0019",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 2 state",
+    "group": "grp_slots",
+    "order": 5,
+    "width": 6,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 18,
+    "color": "#3a9e3a",
+    "value": "Slot 2: --",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0020",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 2 distance",
+    "group": "grp_slots",
+    "order": 6,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 60
+      },
+      {
+        "color": "#c92a2a",
+        "from": 120
+      }
+    ],
+    "min": 0,
+    "max": 200,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0021",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot2/vibration",
+    "topic": "bikestation/slot/2/vibration",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 420,
+    "wires": [
+      [
+        "fn0022",
+        "g0024",
+        "c0008"
+      ]
+    ]
+  },
+  {
+    "id": "fn0022",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot2 vibration",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.alert ? 'ALERT' : 'OK');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 420,
+    "wires": [
+      [
+        "t0023"
+      ]
+    ]
+  },
+  {
+    "id": "t0023",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 2 vibration state",
+    "group": "grp_slots",
+    "order": 7,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#e4e7eb",
+    "value": "OK",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0024",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 2 vibration",
+    "group": "grp_slots",
+    "order": 8,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "g",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 0.3
+      },
+      {
+        "color": "#c92a2a",
+        "from": 0.7
+      }
+    ],
+    "min": 0,
+    "max": 1,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0025",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot3/proximity",
+    "topic": "bikestation/slot/3/proximity",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 470,
+    "wires": [
+      [
+        "fn0026",
+        "g0028",
+        "c0007"
+      ]
+    ]
+  },
+  {
+    "id": "fn0026",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot3 proximity",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = 'Slot 3:  ' + (p.occupied ? 'OCCUPIED' : 'FREE') + '   (' + p.distance_cm + ' cm)';\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 470,
+    "wires": [
+      [
+        "t0027"
+      ]
+    ]
+  },
+  {
+    "id": "t0027",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 3 state",
+    "group": "grp_slots",
+    "order": 9,
+    "width": 6,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 18,
+    "color": "#ff7f0e",
+    "value": "Slot 3: --",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0028",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 3 distance",
+    "group": "grp_slots",
+    "order": 10,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 60
+      },
+      {
+        "color": "#c92a2a",
+        "from": 120
+      }
+    ],
+    "min": 0,
+    "max": 200,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0029",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot3/vibration",
+    "topic": "bikestation/slot/3/vibration",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 510,
+    "wires": [
+      [
+        "fn0030",
+        "g0032",
+        "c0008"
+      ]
+    ]
+  },
+  {
+    "id": "fn0030",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot3 vibration",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.alert ? 'ALERT' : 'OK');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 510,
+    "wires": [
+      [
+        "t0031"
+      ]
+    ]
+  },
+  {
+    "id": "t0031",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 3 vibration state",
+    "group": "grp_slots",
+    "order": 11,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#e4e7eb",
+    "value": "OK",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0032",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 3 vibration",
+    "group": "grp_slots",
+    "order": 12,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "g",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 0.3
+      },
+      {
+        "color": "#c92a2a",
+        "from": 0.7
+      }
+    ],
+    "min": 0,
+    "max": 1,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0033",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot4/proximity",
+    "topic": "bikestation/slot/4/proximity",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 560,
+    "wires": [
+      [
+        "fn0034",
+        "g0036",
+        "c0007"
+      ]
+    ]
+  },
+  {
+    "id": "fn0034",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot4 proximity",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = 'Slot 4:  ' + (p.occupied ? 'OCCUPIED' : 'FREE') + '   (' + p.distance_cm + ' cm)';\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 560,
+    "wires": [
+      [
+        "t0035"
+      ]
+    ]
+  },
+  {
+    "id": "t0035",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 4 state",
+    "group": "grp_slots",
+    "order": 13,
+    "width": 6,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 18,
+    "color": "#845ef7",
+    "value": "Slot 4: --",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0036",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 4 distance",
+    "group": "grp_slots",
+    "order": 14,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 60
+      },
+      {
+        "color": "#c92a2a",
+        "from": 120
+      }
+    ],
+    "min": 0,
+    "max": 200,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "in0037",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "slot4/vibration",
+    "topic": "bikestation/slot/4/vibration",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 600,
+    "wires": [
+      [
+        "fn0038",
+        "g0040",
+        "c0008"
+      ]
+    ]
+  },
+  {
+    "id": "fn0038",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse slot4 vibration",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.alert ? 'ALERT' : 'OK');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 600,
+    "wires": [
+      [
+        "t0039"
+      ]
+    ]
+  },
+  {
+    "id": "t0039",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 4 vibration state",
+    "group": "grp_slots",
+    "order": 15,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#e4e7eb",
+    "value": "OK",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "g0040",
+    "type": "ui-gauge",
+    "z": "tab_bikestation",
+    "name": "Slot 4 vibration",
+    "group": "grp_slots",
+    "order": 16,
+    "width": 3,
+    "height": 6,
+    "gtype": "gauge-half",
+    "gstyle": "needle",
+    "title": "",
+    "alwaysShowTitle": false,
+    "floatingTitlePosition": 0,
+    "value": "payload",
+    "valueType": "msg",
+    "units": "g",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
+    "segments": [
+      {
+        "color": "#2b8a3e",
+        "from": 0
+      },
+      {
+        "color": "#f0b429",
+        "from": 0.3
+      },
+      {
+        "color": "#c92a2a",
+        "from": 0.7
+      }
+    ],
+    "min": 0,
+    "max": 1,
+    "sizeThickness": 6,
+    "sizeGap": 2,
+    "sizeKeyThickness": 6,
+    "styleRounded": true,
+    "styleGlow": false,
+    "className": "",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "fn0041",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "build LED payload",
+    "func": "const seg = (msg.topic || '').split('/');\n// inbound topic: bikestation/set/<slot>/<color|blink>\nconst slot = seg[2];\nconst what = seg[3];\nif (what === 'color') { flow.set('color' + slot, msg.payload); }\nelse { flow.set('blink' + slot, msg.payload === true || msg.payload === 'true'); }\nmsg.topic = 'bikestation/slot/' + slot + '/led';\nmsg.payload = JSON.stringify({\n  slot: Number(slot),\n  color: flow.get('color' + slot) || 'green',\n  blink: flow.get('blink' + slot) || false\n});\nmsg.qos = 0;\nmsg.retain = true;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 600,
+    "y": 700,
+    "wires": [
+      [
+        "out0042"
+      ]
+    ]
+  },
+  {
+    "id": "out0042",
+    "type": "mqtt out",
+    "z": "tab_bikestation",
+    "name": "LED out",
+    "topic": "",
+    "qos": "0",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "broker_local",
+    "x": 860,
+    "y": 700,
+    "wires": []
+  },
+  {
+    "id": "dd0043",
+    "type": "ui-dropdown",
+    "z": "tab_bikestation",
+    "name": "Slot 1 colour",
+    "group": "grp_led",
+    "order": 1,
+    "width": 3,
+    "height": 1,
+    "tooltip": "",
+    "passthru": false,
+    "multiple": false,
+    "chips": false,
+    "clearable": false,
+    "options": [
+      {
+        "label": "green",
+        "value": "green"
+      },
+      {
+        "label": "blue",
+        "value": "blue"
+      },
+      {
+        "label": "red",
+        "value": "red"
+      },
+      {
+        "label": "yellow",
+        "value": "yellow"
+      },
+      {
+        "label": "purple",
+        "value": "purple"
+      },
+      {
+        "label": "white",
+        "value": "white"
+      },
+      {
+        "label": "off",
+        "value": "off"
+      }
+    ],
+    "payload": "true",
+    "topic": "bikestation/set/1/color",
+    "topicType": "str",
+    "className": "",
+    "typeIsComboBox": true,
+    "msgTrigger": "onChange",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "sw0044",
+    "type": "ui-switch",
+    "z": "tab_bikestation",
+    "name": "Slot 1 blink",
+    "group": "grp_led",
+    "order": 2,
+    "width": 3,
+    "height": 1,
+    "passthru": false,
+    "decouple": false,
+    "topic": "bikestation/set/1/blink",
+    "topicType": "str",
+    "style": "",
+    "className": "",
+    "layout": "row-spread",
+    "clickableArea": "switch",
+    "onvalue": true,
+    "onvalueType": "bool",
+    "onicon": "",
+    "oncolor": "#4a90d9",
+    "offvalue": false,
+    "offvalueType": "bool",
+    "officon": "",
+    "offcolor": "",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "t0045",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 1 LED",
+    "group": "grp_led",
+    "order": 3,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#0094CE",
+    "value": "Slot 1",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "dd0046",
+    "type": "ui-dropdown",
+    "z": "tab_bikestation",
+    "name": "Slot 2 colour",
+    "group": "grp_led",
+    "order": 4,
+    "width": 3,
+    "height": 1,
+    "tooltip": "",
+    "passthru": false,
+    "multiple": false,
+    "chips": false,
+    "clearable": false,
+    "options": [
+      {
+        "label": "green",
+        "value": "green"
+      },
+      {
+        "label": "blue",
+        "value": "blue"
+      },
+      {
+        "label": "red",
+        "value": "red"
+      },
+      {
+        "label": "yellow",
+        "value": "yellow"
+      },
+      {
+        "label": "purple",
+        "value": "purple"
+      },
+      {
+        "label": "white",
+        "value": "white"
+      },
+      {
+        "label": "off",
+        "value": "off"
+      }
+    ],
+    "payload": "true",
+    "topic": "bikestation/set/2/color",
+    "topicType": "str",
+    "className": "",
+    "typeIsComboBox": true,
+    "msgTrigger": "onChange",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "sw0047",
+    "type": "ui-switch",
+    "z": "tab_bikestation",
+    "name": "Slot 2 blink",
+    "group": "grp_led",
+    "order": 5,
+    "width": 3,
+    "height": 1,
+    "passthru": false,
+    "decouple": false,
+    "topic": "bikestation/set/2/blink",
+    "topicType": "str",
+    "style": "",
+    "className": "",
+    "layout": "row-spread",
+    "clickableArea": "switch",
+    "onvalue": true,
+    "onvalueType": "bool",
+    "onicon": "",
+    "oncolor": "#4a90d9",
+    "offvalue": false,
+    "offvalueType": "bool",
+    "officon": "",
+    "offcolor": "",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "t0048",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 2 LED",
+    "group": "grp_led",
+    "order": 6,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#3a9e3a",
+    "value": "Slot 2",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "dd0049",
+    "type": "ui-dropdown",
+    "z": "tab_bikestation",
+    "name": "Slot 3 colour",
+    "group": "grp_led",
+    "order": 7,
+    "width": 3,
+    "height": 1,
+    "tooltip": "",
+    "passthru": false,
+    "multiple": false,
+    "chips": false,
+    "clearable": false,
+    "options": [
+      {
+        "label": "green",
+        "value": "green"
+      },
+      {
+        "label": "blue",
+        "value": "blue"
+      },
+      {
+        "label": "red",
+        "value": "red"
+      },
+      {
+        "label": "yellow",
+        "value": "yellow"
+      },
+      {
+        "label": "purple",
+        "value": "purple"
+      },
+      {
+        "label": "white",
+        "value": "white"
+      },
+      {
+        "label": "off",
+        "value": "off"
+      }
+    ],
+    "payload": "true",
+    "topic": "bikestation/set/3/color",
+    "topicType": "str",
+    "className": "",
+    "typeIsComboBox": true,
+    "msgTrigger": "onChange",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "sw0050",
+    "type": "ui-switch",
+    "z": "tab_bikestation",
+    "name": "Slot 3 blink",
+    "group": "grp_led",
+    "order": 8,
+    "width": 3,
+    "height": 1,
+    "passthru": false,
+    "decouple": false,
+    "topic": "bikestation/set/3/blink",
+    "topicType": "str",
+    "style": "",
+    "className": "",
+    "layout": "row-spread",
+    "clickableArea": "switch",
+    "onvalue": true,
+    "onvalueType": "bool",
+    "onicon": "",
+    "oncolor": "#4a90d9",
+    "offvalue": false,
+    "offvalueType": "bool",
+    "officon": "",
+    "offcolor": "",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "t0051",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 3 LED",
+    "group": "grp_led",
+    "order": 9,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#ff7f0e",
+    "value": "Slot 3",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "dd0052",
+    "type": "ui-dropdown",
+    "z": "tab_bikestation",
+    "name": "Slot 4 colour",
+    "group": "grp_led",
+    "order": 10,
+    "width": 3,
+    "height": 1,
+    "tooltip": "",
+    "passthru": false,
+    "multiple": false,
+    "chips": false,
+    "clearable": false,
+    "options": [
+      {
+        "label": "green",
+        "value": "green"
+      },
+      {
+        "label": "blue",
+        "value": "blue"
+      },
+      {
+        "label": "red",
+        "value": "red"
+      },
+      {
+        "label": "yellow",
+        "value": "yellow"
+      },
+      {
+        "label": "purple",
+        "value": "purple"
+      },
+      {
+        "label": "white",
+        "value": "white"
+      },
+      {
+        "label": "off",
+        "value": "off"
+      }
+    ],
+    "payload": "true",
+    "topic": "bikestation/set/4/color",
+    "topicType": "str",
+    "className": "",
+    "typeIsComboBox": true,
+    "msgTrigger": "onChange",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "sw0053",
+    "type": "ui-switch",
+    "z": "tab_bikestation",
+    "name": "Slot 4 blink",
+    "group": "grp_led",
+    "order": 11,
+    "width": 3,
+    "height": 1,
+    "passthru": false,
+    "decouple": false,
+    "topic": "bikestation/set/4/blink",
+    "topicType": "str",
+    "style": "",
+    "className": "",
+    "layout": "row-spread",
+    "clickableArea": "switch",
+    "onvalue": true,
+    "onvalueType": "bool",
+    "onicon": "",
+    "oncolor": "#4a90d9",
+    "offvalue": false,
+    "offvalueType": "bool",
+    "officon": "",
+    "offcolor": "",
+    "wires": [
+      [
+        "fn0041"
+      ]
+    ]
+  },
+  {
+    "id": "t0054",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Slot 4 LED",
+    "group": "grp_led",
+    "order": 12,
+    "width": 3,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 14,
+    "color": "#845ef7",
+    "value": "Slot 4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ti0055",
+    "type": "ui-text-input",
+    "z": "tab_bikestation",
+    "name": "OLED text",
+    "group": "grp_oled",
+    "order": 1,
+    "width": 9,
+    "height": 1,
+    "topic": "bikestation/entrance/oled/display",
+    "topicType": "str",
+    "mode": "text",
+    "tooltip": "",
+    "delay": 300,
+    "passthru": true,
+    "sendOnDelay": false,
+    "sendOnBlur": true,
+    "sendOnEnter": true,
+    "className": "",
+    "clearable": false,
+    "sendOnClear": false,
+    "icon": "",
+    "iconPosition": "left",
+    "iconInnerPosition": "inside",
+    "wires": [
+      [
+        "fn0057"
+      ]
+    ]
+  },
+  {
+    "id": "b0056",
+    "type": "ui-button",
+    "z": "tab_bikestation",
+    "name": "Send to OLED",
+    "group": "grp_oled",
+    "order": 2,
+    "width": 3,
+    "height": 1,
+    "emulateClick": false,
+    "tooltip": "",
+    "color": "",
+    "bgcolor": "",
+    "className": "",
+    "icon": "",
+    "iconPosition": "left",
+    "payload": "true",
+    "payloadType": "str",
+    "topic": "bikestation/entrance/oled/display",
+    "topicType": "str",
+    "buttonColor": "",
+    "textColor": "",
+    "iconColor": "",
+    "enableClick": true,
+    "enablePointerdown": false,
+    "pointerdownPayload": "",
+    "pointerdownPayloadType": "str",
+    "enablePointerup": false,
+    "pointerupPayload": "",
+    "pointerupPayloadType": "str",
+    "label": "Send to OLED",
+    "wires": [
+      [
+        "fn0057"
+      ]
+    ]
+  },
+  {
+    "id": "fn0057",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "wrap OLED text",
+    "func": "msg.payload = String(msg.payload);\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 600,
+    "y": 800,
+    "wires": [
+      [
+        "out0058"
+      ]
+    ]
+  },
+  {
+    "id": "out0058",
+    "type": "mqtt out",
+    "z": "tab_bikestation",
+    "name": "OLED out",
+    "topic": "",
+    "qos": "0",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "broker_local",
+    "x": 860,
+    "y": 800,
+    "wires": []
+  },
+  {
+    "id": "in0059",
+    "type": "mqtt in",
+    "z": "tab_bikestation",
+    "name": "nfc/tap",
+    "topic": "bikestation/entrance/nfc/tap",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "broker_local",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 170,
+    "y": 760,
+    "wires": [
+      [
+        "fn0060"
+      ]
+    ]
+  },
+  {
+    "id": "fn0060",
+    "type": "function",
+    "z": "tab_bikestation",
+    "name": "parse nfc",
+    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nmsg.payload = (p.timestamp || '-') + '   tag=' + (p.uid || '?');\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 760,
+    "wires": [
+      [
+        "t0061"
+      ]
+    ]
+  },
+  {
+    "id": "t0061",
+    "type": "ui-text",
+    "z": "tab_bikestation",
+    "name": "Last Tap",
+    "group": "grp_nfc",
+    "order": 1,
+    "width": 12,
+    "height": 1,
+    "wrapText": true,
+    "tooltip": "",
+    "valueType": "msg",
+    "className": "",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#74c0fc",
+    "value": "no tag tapped",
+    "wires": [
+      []
+    ]
+  }
+]
