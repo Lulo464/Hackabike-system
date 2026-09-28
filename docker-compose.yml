@@ -4,6 +4,10 @@ services:
       context: .
       dockerfile: dockerfiles/nodered/Dockerfile
     container_name: bikestation-nodered
+    # Without this the container runs on UTC while the host is Europe/Berlin,
+    # so anything that renders a local time (e.g. the last RFID tap) is 2h off.
+    environment:
+      - TZ=Europe/Berlin
     depends_on:
       - mosquitto
     ports:
