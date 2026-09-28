@@ -1,0 +1,173 @@
+# ESP32 DevKit (ESP-WROOM-32): WS2812B-Strip + 4x Grove Ultrasonic Ranger + MQTT
+esphome:
+  name: bikeslot-test
+  on_boot:
+    priority: -100
+    then:
+      # Reset beim Boot: alle Slots auf "aus", LEDs loeschen
+      - lambda: |-
+          for (int i = 0; i < 4; i++) id(slots)[i] = 0;
+      - light.turn_off:
+          id: strip
+          transition_length: 0s
+      - delay: 500ms
+      - light.turn_on:
+          id: strip
+          brightness: 30%
+          effect: "Slots"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+  level: INFO
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: "Hackabike-ESP"
+  password: "hackabike2026"
+  power_save_mode: none
+
+# 0=aus, 1=free, 2=occupied, 3=reserved, 4=alarm
+globals:
+  - id: slots
+    type: int[4]
+    initial_value: '{0, 0, 0, 0}'
+
+mqtt:
+  broker: 192.168.50.1
+  port: 1883
+  client_id: bikeslot-test
+  discovery: false
+  birth_message:
+    topic: bikestation/bikeslot-test/status
+    payload: online
+  will_message:
+    topic: bikestation/bikeslot-test/status
+    payload: offline
+  on_message:
+    - topic: bikestation/slot1/state
+      then:
+        - lambda: |-
+            id(slots)[0] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
+    - topic: bikestation/slot2/state
+      then:
+        - lambda: |-
+            id(slots)[1] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
+    - topic: bikestation/slot3/state
+      then:
+        - lambda: |-
+            id(slots)[2] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
+    - topic: bikestation/slot4/state
+      then:
+        - lambda: |-
+            id(slots)[3] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: strip
+    name: "Strip"
+    pin: GPIO13
+    num_leds: 20            # 4 * LEDS_PER_SLOT + 3 * GAP
+    chipset: WS2812
+    rgb_order: GRB
+    effects:
+      - addressable_lambda:
+          name: "Slots"
+          update_interval: 100ms
+          lambda: |-
+            const int LEDS_PER_SLOT = 2;
+            const int GAP = 4;
+            bool slow = (millis() / 500) % 2;
+            bool fast = (millis() / 150) % 2;
+            it.all() = Color::BLACK;
+            for (int i = 0; i < 4; i++) {
+              Color c = Color::BLACK;
+              switch (id(slots)[i]) {
+                case 1: c = Color(0, 255, 0); break;
+                case 2: c = Color(255, 0, 0); break;
+                case 3: c = slow ? Color(0, 0, 255) : Color::BLACK; break;
+                case 4: c = fast ? Color(255, 0, 0) : Color::BLACK; break;
+              }
+              int start = i * (LEDS_PER_SLOT + GAP);
+              for (int j = 0; j < LEDS_PER_SLOT; j++) it[start + j] = c;
+            }
+
+sensor:
+  # Slot 1 -> D18
+  - platform: template
+    name: "Distance Slot 1"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    update_interval: 1000ms
+    state_topic: bikestation/slot1/distance
+    lambda: |-
+      const int SIG = 18;
+      pinMode(SIG, OUTPUT);
+      digitalWrite(SIG, LOW);  delayMicroseconds(2);
+      digitalWrite(SIG, HIGH); delayMicroseconds(10);
+      digitalWrite(SIG, LOW);
+      pinMode(SIG, INPUT);
+      unsigned long us = pulseIn(SIG, HIGH, 30000);
+      if (us == 0) return {};
+      return us / 58.0f;
+
+  # Slot 2 -> D19
+  - platform: template
+    name: "Distance Slot 2"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    update_interval: 1100ms
+    state_topic: bikestation/slot2/distance
+    lambda: |-
+      const int SIG = 19;
+      pinMode(SIG, OUTPUT);
+      digitalWrite(SIG, LOW);  delayMicroseconds(2);
+      digitalWrite(SIG, HIGH); delayMicroseconds(10);
+      digitalWrite(SIG, LOW);
+      pinMode(SIG, INPUT);
+      unsigned long us = pulseIn(SIG, HIGH, 30000);
+      if (us == 0) return {};
+      return us / 58.0f;
+
+  # Slot 3 -> D21
+  - platform: template
+    name: "Distance Slot 3"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    update_interval: 1200ms
+    state_topic: bikestation/slot3/distance
+    lambda: |-
+      const int SIG = 21;
+      pinMode(SIG, OUTPUT);
+      digitalWrite(SIG, LOW);  delayMicroseconds(2);
+      digitalWrite(SIG, HIGH); delayMicroseconds(10);
+      digitalWrite(SIG, LOW);
+      pinMode(SIG, INPUT);
+      unsigned long us = pulseIn(SIG, HIGH, 30000);
+      if (us == 0) return {};
+      return us / 58.0f;
+
+  # Slot 4 -> D22
+  - platform: template
+    name: "Distance Slot 4"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    update_interval: 1300ms
+    state_topic: bikestation/slot4/distance
+    lambda: |-
+      const int SIG = 22;
+      pinMode(SIG, OUTPUT);
+      digitalWrite(SIG, LOW);  delayMicroseconds(2);
+      digitalWrite(SIG, HIGH); delayMicroseconds(10);
+      digitalWrite(SIG, LOW);
+      pinMode(SIG, INPUT);
+      unsigned long us = pulseIn(SIG, HIGH, 30000);
+      if (us == 0) return {};
+      return us / 58.0f;
