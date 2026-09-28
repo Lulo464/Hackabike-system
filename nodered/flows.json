@@ -55,8 +55,7 @@
     "name": "bikestation-broker",
     "broker": "mosquitto",
     "port": "1883",
-    "clientid": "nodered-bikestation-unified",
-    "autoconnect": "true"
+    "clientid": "nodered-bikestation-unified"
   },
   {
     "id": "58826571fec7b729",
@@ -73,6 +72,25 @@
       "pagePadding": "16px",
       "groupGap": "16px",
       "groupBorderRadius": "8px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "skin_theme_light",
+    "type": "ui-theme",
+    "name": "Glassmorphism Light (skin)",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094CE",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
       "widgetGap": "12px"
     }
   },
@@ -188,10 +206,17 @@
     "width": 4,
     "height": 1,
     "name": "System Status",
+    "label": "",
     "format": "{{msg.payload}}",
     "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": "",
     "color": "#00e676",
+    "wrapText": false,
+    "className": "",
     "value": "ONLINE",
+    "valueType": "msg",
     "x": 550,
     "y": 60,
     "wires": []
@@ -302,6 +327,7 @@
     "z": "cc25d96a5ae42c89",
     "name": "slot1/state",
     "topic": "bikestation/slot1/state",
+    "datatype": "auto-detect",
     "broker": "broker_local",
     "inputs": 0,
     "x": 150,
@@ -313,8 +339,7 @@
         "fn_smart_logic",
         "fn_log_event"
       ]
-    ],
-    "datatype": "auto-detect"
+    ]
   },
   {
     "id": "090b098d59c8c92e",
@@ -337,8 +362,8 @@
     "z": "cc25d96a5ae42c89",
     "group": "26bcbb8bfcede02c",
     "order": 1,
-    "width": 3,
-    "height": 1,
+    "width": 2,
+    "height": 2,
     "name": "BK-001",
     "format": "{{msg.payload}}",
     "layout": "row-spread",
@@ -356,33 +381,45 @@
     "group": "26bcbb8bfcede02c",
     "order": 2,
     "value": "payload",
-    "width": 5,
+    "valueType": "msg",
+    "width": 6,
     "height": 4,
     "gtype": "gauge-half",
+    "gstyle": "needle",
     "title": "Distance",
+    "alwaysShowTitle": true,
     "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
     "segments": [
       {
-        "color": "#00e676",
-        "from": 0
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
       },
       {
-        "color": "#ffea00",
-        "from": 20
+        "from": 20,
+        "color": "#ffd54f",
+        "label": ""
       },
       {
-        "color": "#ff3d00",
-        "from": 40
+        "from": 40,
+        "color": "#ff5252",
+        "label": ""
       }
     ],
     "min": 0,
     "max": 60,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "className": "",
     "x": 550,
     "y": 290,
     "wires": [
       []
-    ],
-    "alwaysShowTitle": true
+    ]
   },
   {
     "id": "bdab4ff8f39f9429",
@@ -390,6 +427,7 @@
     "z": "cc25d96a5ae42c89",
     "name": "slot2/state",
     "topic": "bikestation/slot2/state",
+    "datatype": "auto-detect",
     "broker": "broker_local",
     "inputs": 0,
     "x": 150,
@@ -398,11 +436,9 @@
       [
         "29a0536bd76f882c",
         "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_log_event"
+        "fn_smart_logic"
       ]
-    ],
-    "datatype": "auto-detect"
+    ]
   },
   {
     "id": "29a0536bd76f882c",
@@ -425,8 +461,8 @@
     "z": "cc25d96a5ae42c89",
     "group": "26bcbb8bfcede02c",
     "order": 3,
-    "width": 3,
-    "height": 1,
+    "width": 2,
+    "height": 2,
     "name": "BK-002",
     "format": "{{msg.payload}}",
     "layout": "row-spread",
@@ -444,33 +480,45 @@
     "group": "26bcbb8bfcede02c",
     "order": 4,
     "value": "payload",
-    "width": 5,
+    "valueType": "msg",
+    "width": 6,
     "height": 4,
     "gtype": "gauge-half",
+    "gstyle": "needle",
     "title": "Distance",
+    "alwaysShowTitle": true,
     "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
     "segments": [
       {
-        "color": "#00e676",
-        "from": 0
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
       },
       {
-        "color": "#ffea00",
-        "from": 20
+        "from": 20,
+        "color": "#ffd54f",
+        "label": ""
       },
       {
-        "color": "#ff3d00",
-        "from": 40
+        "from": 40,
+        "color": "#ff5252",
+        "label": ""
       }
     ],
     "min": 0,
     "max": 60,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "className": "",
     "x": 550,
     "y": 420,
     "wires": [
       []
-    ],
-    "alwaysShowTitle": true
+    ]
   },
   {
     "id": "440ee16d4470cc0b",
@@ -478,6 +526,7 @@
     "z": "cc25d96a5ae42c89",
     "name": "slot3/state",
     "topic": "bikestation/slot3/state",
+    "datatype": "auto-detect",
     "broker": "broker_local",
     "inputs": 0,
     "x": 150,
@@ -486,11 +535,9 @@
       [
         "c9f8890485a16b84",
         "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_log_event"
+        "fn_smart_logic"
       ]
-    ],
-    "datatype": "auto-detect"
+    ]
   },
   {
     "id": "c9f8890485a16b84",
@@ -513,8 +560,8 @@
     "z": "cc25d96a5ae42c89",
     "group": "26bcbb8bfcede02c",
     "order": 5,
-    "width": 3,
-    "height": 1,
+    "width": 2,
+    "height": 2,
     "name": "BK-003",
     "format": "{{msg.payload}}",
     "layout": "row-spread",
@@ -532,33 +579,45 @@
     "group": "26bcbb8bfcede02c",
     "order": 6,
     "value": "payload",
-    "width": 5,
+    "valueType": "msg",
+    "width": 6,
     "height": 4,
     "gtype": "gauge-half",
+    "gstyle": "needle",
     "title": "Distance",
+    "alwaysShowTitle": true,
     "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
     "segments": [
       {
-        "color": "#00e676",
-        "from": 0
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
       },
       {
-        "color": "#ffea00",
-        "from": 20
+        "from": 20,
+        "color": "#ffd54f",
+        "label": ""
       },
       {
-        "color": "#ff3d00",
-        "from": 40
+        "from": 40,
+        "color": "#ff5252",
+        "label": ""
       }
     ],
     "min": 0,
     "max": 60,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "className": "",
     "x": 550,
     "y": 550,
     "wires": [
       []
-    ],
-    "alwaysShowTitle": true
+    ]
   },
   {
     "id": "2d449230a0af3c5c",
@@ -566,6 +625,7 @@
     "z": "cc25d96a5ae42c89",
     "name": "slot4/state",
     "topic": "bikestation/slot4/state",
+    "datatype": "auto-detect",
     "broker": "broker_local",
     "inputs": 0,
     "x": 150,
@@ -574,11 +634,9 @@
       [
         "de6969cd102f4701",
         "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_log_event"
+        "fn_smart_logic"
       ]
-    ],
-    "datatype": "auto-detect"
+    ]
   },
   {
     "id": "de6969cd102f4701",
@@ -601,8 +659,8 @@
     "z": "cc25d96a5ae42c89",
     "group": "26bcbb8bfcede02c",
     "order": 7,
-    "width": 3,
-    "height": 1,
+    "width": 2,
+    "height": 2,
     "name": "BK-004",
     "format": "{{msg.payload}}",
     "layout": "row-spread",
@@ -620,33 +678,45 @@
     "group": "26bcbb8bfcede02c",
     "order": 8,
     "value": "payload",
-    "width": 5,
+    "valueType": "msg",
+    "width": 6,
     "height": 4,
     "gtype": "gauge-half",
+    "gstyle": "needle",
     "title": "Distance",
+    "alwaysShowTitle": true,
     "units": "cm",
+    "icon": "",
+    "prefix": "",
+    "suffix": "",
     "segments": [
       {
-        "color": "#00e676",
-        "from": 0
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
       },
       {
-        "color": "#ffea00",
-        "from": 20
+        "from": 20,
+        "color": "#ffd54f",
+        "label": ""
       },
       {
-        "color": "#ff3d00",
-        "from": 40
+        "from": 40,
+        "color": "#ff5252",
+        "label": ""
       }
     ],
     "min": 0,
     "max": 60,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "className": "",
     "x": 550,
     "y": 680,
     "wires": [
       []
-    ],
-    "alwaysShowTitle": true
+    ]
   },
   {
     "id": "56a6534916ee0486",
@@ -855,25 +925,6 @@
     ]
   },
   {
-    "id": "skin_theme_light",
-    "type": "ui-theme",
-    "name": "Glassmorphism Light (skin)",
-    "colors": {
-      "surface": "#ffffff",
-      "primary": "#0094CE",
-      "bgPage": "#eeeeee",
-      "groupBg": "#ffffff",
-      "groupOutline": "#cccccc"
-    },
-    "sizes": {
-      "density": "default",
-      "pagePadding": "12px",
-      "groupGap": "12px",
-      "groupBorderRadius": "4px",
-      "widgetGap": "12px"
-    }
-  },
-  {
     "id": "skin_css_sitestyle",
     "type": "ui-template",
     "z": "cc25d96a5ae42c89",
@@ -905,7 +956,7 @@
     "page": "",
     "ui": "ui_base_1",
     "name": "Status Bar",
-    "order": 3,
+    "order": 4,
     "width": 0,
     "height": 0,
     "head": "",
@@ -1032,10 +1083,29 @@
     ]
   },
   {
-    "id": "inject_cpu",
+    "id": "fn_log_event",
+    "type": "function",
+    "z": "cc25d96a5ae42c89",
+    "name": "log event",
+    "func": "function fmt(v){\n  if (v===null||v===undefined) return '';\n  if (typeof v==='object') { if (v.state!==undefined) return 'slot'+(v.slot!==undefined?': '+v.slot:'')+' = '+v.state; return JSON.stringify(v); }\n  return String(v);\n}\nvar detail = fmt(msg.payload);\nvar now = new Date();\nvar pad = function(n){ return (n<10?'0':'')+n; };\nvar ts = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());\nreturn [{\n  topic: 'log',\n  time: ts,\n  detail: (msg.topic||'event') + (detail? ' :: '+detail : ''),\n  eventStatus: msg.payload && msg.payload.state ? 'ok' : 'info'\n}];",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 40,
+    "wires": [
+      [
+        "e62574251e991fff"
+      ]
+    ]
+  },
+  {
+    "id": "inj_cpu",
     "type": "inject",
     "z": "cc25d96a5ae42c89",
-    "name": "Sample CPU",
+    "name": "sample cpu",
     "props": [
       {
         "p": "payload"
@@ -1052,8 +1122,8 @@
     "topic": "",
     "payload": "",
     "payloadType": "date",
-    "x": 220,
-    "y": 820,
+    "x": 120,
+    "y": 40,
     "wires": [
       [
         "exec_cpu"
@@ -1064,29 +1134,35 @@
     "id": "exec_cpu",
     "type": "exec",
     "z": "cc25d96a5ae42c89",
-    "name": "read /proc/stat",
+    "name": "cpu sysinfo",
     "command": "head -1 /proc/stat",
-    "addpay": false,
+    "addpay": true,
     "append": "",
-    "timer": 0,
+    "useSpawn": false,
+    "timer": "",
     "oldrc": false,
-    "inc": false,
-    "x": 390,
-    "y": 820,
+    "payloadType": "str",
+    "x": 260,
+    "y": 40,
     "wires": [
       [
-        "fn_cpu_pct"
+        "fn_cpu"
       ]
     ]
   },
   {
-    "id": "fn_cpu_pct",
+    "id": "fn_cpu",
     "type": "function",
     "z": "cc25d96a5ae42c89",
-    "name": "CPU % delta",
-    "func": "let m = String(msg.payload).trim().split(/\\s+/);\nlet total = 0, idle = 0;\nfor (let i=2;i<m.length;i++){\n    if (i<=5 || i===8) idle += parseInt(m[i])||0;\n    total += parseInt(m[i])||0;\n}\nlet prev = flow.get('cpuPrev');\nflow.set('cpuPrev', {total, idle});\nif (!prev || total <= prev.total) return null;\nlet dT = total - prev.total;\nlet busy = 100 * (1 - (idle - prev.idle) / dT);\nmsg.payload = Math.max(0, Math.min(100, Math.round(busy)));\nreturn msg;",
-    "x": 560,
-    "y": 820,
+    "name": "cpu pct",
+    "func": "var p = String(msg.payload||'').trim().split(/\\s+/);\nvar idle = parseInt(p[4]||0,10);\nvar tot = 0;\nfor (var i=1;i<p.length;i++){ var v=parseInt(p[i]||0,10); if(!isNaN(v)) tot+=v; }\nif (tot<=0) return null;\nvar cpu = Math.round((1 - idle/tot)*1000)/10;\nif (cpu<0) cpu=0; if (cpu>100) cpu=100;\nreturn {payload: cpu};",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 40,
     "wires": [
       [
         "gauge_cpu"
@@ -1096,42 +1172,55 @@
   {
     "id": "gauge_cpu",
     "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "CPU load",
+    "name": "CPU",
     "group": "ccd65dd0a7a37ba9",
     "order": 1,
-    "value": "payload",
     "width": 4,
     "height": 3,
-    "gtype": "gauge-half",
-    "title": "CPU",
-    "units": "%",
-    "segments": [
-      {
-        "color": "#00e676",
-        "from": 0
-      },
-      {
-        "color": "#ffea00",
-        "from": 60
-      },
-      {
-        "color": "#ff3d00",
-        "from": 80
-      }
-    ],
+    "gtype": "gauge",
+    "gstyle": "needle",
+    "title": "CPU Load",
+    "ui": "",
+    "value": "payload",
+    "valueType": "msg",
     "min": 0,
     "max": 100,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "prefix": "",
+    "suffix": " %",
+    "units": "",
+    "icon": "",
+    "className": "",
+    "segments": [
+      {
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
+      },
+      {
+        "from": 60,
+        "color": "#ffd54f",
+        "label": ""
+      },
+      {
+        "from": 80,
+        "color": "#ff5252",
+        "label": ""
+      }
+    ],
     "alwaysShowTitle": true,
-    "x": 730,
-    "y": 820,
+    "x": 0,
+    "y": 0,
+    "z": "cc25d96a5ae42c89",
     "wires": []
   },
   {
-    "id": "inject_ram",
+    "id": "inj_ram",
     "type": "inject",
     "z": "cc25d96a5ae42c89",
-    "name": "Sample RAM",
+    "name": "sample ram",
     "props": [
       {
         "p": "payload"
@@ -1144,12 +1233,12 @@
     "repeat": "5",
     "crontab": "",
     "once": false,
-    "onceDelay": 1.5,
+    "onceDelay": 0.1,
     "topic": "",
     "payload": "",
     "payloadType": "date",
-    "x": 220,
-    "y": 900,
+    "x": 120,
+    "y": 40,
     "wires": [
       [
         "exec_ram"
@@ -1160,29 +1249,35 @@
     "id": "exec_ram",
     "type": "exec",
     "z": "cc25d96a5ae42c89",
-    "name": "read meminfo",
-    "command": "awk '/^MemTotal/{t=$2} /^MemAvailable/{a=$2} END{printf \"%.0f\", (t-a)*100/t}' /proc/meminfo",
-    "addpay": false,
+    "name": "ram sysinfo",
+    "command": "awk '/MemTotal/{t=$2}/MemAvailable/{a=$2}END{print t,a}' /proc/meminfo",
+    "addpay": true,
     "append": "",
-    "timer": 0,
+    "useSpawn": false,
+    "timer": "",
     "oldrc": false,
-    "inc": false,
-    "x": 390,
-    "y": 900,
+    "payloadType": "str",
+    "x": 260,
+    "y": 40,
     "wires": [
       [
-        "fn_ram_num"
+        "fn_ram"
       ]
     ]
   },
   {
-    "id": "fn_ram_num",
+    "id": "fn_ram",
     "type": "function",
     "z": "cc25d96a5ae42c89",
-    "name": "RAM %",
-    "func": "let v = Number(String(msg.payload).trim());\nmsg.payload = (isNaN(v)) ? null : Math.max(0, Math.min(100, v));\nreturn msg;",
-    "x": 560,
-    "y": 900,
+    "name": "ram pct",
+    "func": "var m = String(msg.payload||'').trim().split(/\\s+/);\nvar tot = parseInt(m[0]||0,10);\nvar avail = parseInt(m[1]||0,10);\nif (!tot) return null;\nvar pct = Math.round((1 - avail/tot)*1000)/10;\nif (pct<0) pct=0; if (pct>100) pct=100;\nreturn {payload: pct};",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 40,
     "wires": [
       [
         "gauge_ram"
@@ -1192,49 +1287,48 @@
   {
     "id": "gauge_ram",
     "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "RAM usage",
+    "name": "RAM",
     "group": "ccd65dd0a7a37ba9",
     "order": 2,
-    "value": "payload",
     "width": 4,
     "height": 3,
-    "gtype": "gauge-half",
-    "title": "RAM",
-    "units": "%",
-    "segments": [
-      {
-        "color": "#00e676",
-        "from": 0
-      },
-      {
-        "color": "#ffea00",
-        "from": 60
-      },
-      {
-        "color": "#ff3d00",
-        "from": 80
-      }
-    ],
+    "gtype": "gauge",
+    "gstyle": "needle",
+    "title": "RAM Usage",
+    "ui": "",
+    "value": "payload",
+    "valueType": "msg",
     "min": 0,
     "max": 100,
+    "sizeThickness": "",
+    "sizeGap": "",
+    "sizeKeyThickness": "",
+    "prefix": "",
+    "suffix": " %",
+    "units": "",
+    "icon": "",
+    "className": "",
+    "segments": [
+      {
+        "from": 0,
+        "color": "#00c853",
+        "label": ""
+      },
+      {
+        "from": 60,
+        "color": "#ffd54f",
+        "label": ""
+      },
+      {
+        "from": 80,
+        "color": "#ff5252",
+        "label": ""
+      }
+    ],
     "alwaysShowTitle": true,
-    "x": 730,
-    "y": 900,
-    "wires": []
-  },
-  {
-    "id": "fn_log_event",
-    "type": "function",
+    "x": 0,
+    "y": 0,
     "z": "cc25d96a5ae42c89",
-    "name": "Activity log builder",
-    "func": "let row = { Time: new Date().toLocaleTimeString(), Event: '?', Detail: '' };\nlet t = String(msg.topic || '');\nlet slot = (t.match(/slot(\\d)/)||[])[1];\nlet st = String(msg.payload||'').trim().toLowerCase();\nif (t.includes('/state') && slot) {\n    row.Event = 'S' + slot + ' ' + ({free:'AVAILABLE', reserved:'RESERVED', occupied:'IN USE'}[st] || st.toUpperCase());\n    row.Detail = st;\n} else if (t.includes('/status')) {\n    row.Event = 'ESP ' + (st==='online' ? 'ONLINE' : 'OFFLINE');\n    row.Detail = st;\n} else if (t.includes('/nfc/tap')) {\n    let p; try { p = JSON.parse(msg.payload); } catch(e) { p = null; }\n    row.Event = 'RFID tap';\n    row.Detail = 'UID ' + ((p && p.uid) || String(msg.payload).slice(0,8));\n} else if (t.includes('/alerts')) {\n    let p; try { p = JSON.parse(msg.payload); } catch(e) { p = null; }\n    row.Event = 'ALERT' + (p && p.slot ? ' S'+p.slot : '');\n    row.Detail = (p && p.type) || String(msg.payload);\n} else {\n    row.Event = t.split('/').pop();\n    row.Detail = String(msg.payload).slice(0, 40);\n}\nlet log = flow.get('activityLog') || [];\nlog.unshift(row);\nif (log.length > 15) log = log.slice(0, 15);\nflow.set('activityLog', log);\nmsg.payload = log;\nreturn msg;",
-    "x": 560,
-    "y": 540,
-    "wires": [
-      [
-        "e62574251e991fff"
-      ]
-    ]
+    "wires": []
   }
 ]
