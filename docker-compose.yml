@@ -8,8 +8,15 @@ services:
     # so anything that renders a local time (e.g. the last RFID tap) is 2h off.
     environment:
       - TZ=Europe/Berlin
+      # read by the postgreSQLConfig node (user/password fields set to "env"),
+      # so no DB credentials end up in flows.json
+      - PGUSER=${POSTGRES_USER:-nodered}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-hackathon2026}
     depends_on:
-      - mosquitto
+      mosquitto:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     ports:
       - "1880:1880"
     volumes:
@@ -29,3 +36,27 @@ services:
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
     restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bikestation-postgres
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_DB=bikestation
+      - POSTGRES_USER=${POSTGRES_USER:-nodered}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hackathon2026}
+    ports:
+      - "5432:5432"   # psql / Grafana from the LAN
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # *.sql in here runs once, on the first start with an empty data volume
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

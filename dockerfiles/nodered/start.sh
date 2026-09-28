@@ -8,18 +8,24 @@
 #
 # /data is a bind mount from the host, so the FlowFuse dashboard cannot be
 # installed during `docker build` - it would be shadowed at runtime. Install
-# it here on first boot, into the real /data, where it then persists.
+# it (and the other extra nodes) here on first boot, into the real /data,
+# where they then persist.
 
 set -e
 
-if [ ! -d /data/node_modules/@flowfuse/node-red-dashboard ]; then
-    echo "Bikestation: installing @flowfuse/node-red-dashboard into /data ..."
-    cd /data
-    npm install --omit=dev @flowfuse/node-red-dashboard@1.30.2
-    echo "Bikestation: dashboard installed."
-else
-    echo "Bikestation: dashboard already present, skipping install."
-fi
+# Checked per package, so adding one here also installs it on a Pi whose
+# /data already has the others.
+install_if_missing() {
+    if [ ! -d "/data/node_modules/$1" ]; then
+        echo "Bikestation: installing $1@$2 into /data ..."
+        (cd /data && npm install --omit=dev "$1@$2")
+    else
+        echo "Bikestation: $1 already present, skipping install."
+    fi
+}
+
+install_if_missing @flowfuse/node-red-dashboard 1.30.2
+install_if_missing node-red-contrib-postgresql 0.16.2
 
 cd /usr/src/node-red
 exec /usr/local/bin/node $NODE_OPTIONS node_modules/node-red/red.js --userDir /data "$@"
