@@ -1,0 +1,67 @@
+// Smart Bike Station - Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Station {
+  id           String   @id @default(cuid())
+  name         String
+  location     String
+  status       String   @default("online") // online | offline | maintenance
+  capacity     Int      @default(8)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  bikes        Bike[]
+  telemetry    Telemetry[]
+  activities   Activity[]
+}
+
+model Bike {
+  id           String   @id @default(cuid())
+  bikeId       String   @unique // physical ID like BK-001
+  stationId    String
+  station      Station  @relation(fields: [stationId], references: [id])
+  status       String   @default("available") // available | in_use | charging | maintenance | offline
+  batteryLevel Int      @default(100) // 0-100
+  totalRides   Int      @default(0)
+  totalKm      Float    @default(0)
+  lastRider    String?
+  lastRideEnd  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Telemetry {
+  id              String   @id @default(cuid())
+  stationId       String
+  station         Station  @relation(fields: [stationId], references: [id])
+  timestamp       DateTime @default(now())
+  temperature     Float    // Celsius
+  humidity        Float    // %
+  airQuality      Float    // AQI
+  solarPower      Float    // W
+  batteryVoltage  Float    // V
+  stationPower    Float    // W
+  cpuTemp         Float    // Celsius (Pi CPU temp)
+  cpuLoad         Float    // % (Pi CPU load)
+  memoryUsage     Float    // %
+  diskUsage       Float    // %
+  availableBikes  Int
+  inUseBikes      Int
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  stationId  String
+  station    Station  @relation(fields: [stationId], references: [id])
+  timestamp  DateTime @default(now())
+  type       String   // rent | return | charge_start | charge_done | maintenance | alert | system
+  bikeId     String?
+  message    String
+  severity   String   @default("info") // info | success | warning | critical
+}
