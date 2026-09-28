@@ -1,1422 +1,1379 @@
 [
-  {
-    "id": "a6b4c51fced8b873",
-    "type": "tab",
-    "label": "Recovered Nodes",
-    "disabled": false,
-    "info": "The nodes on this flow were missing a valid flow id when they were imported. They have been added to this flow so you can either restore or delete them.",
-    "env": []
-  },
-  {
-    "id": "cc25d96a5ae42c89",
-    "type": "tab",
-    "label": "Smart Bikestation",
-    "disabled": false,
-    "info": "EcoHub-styled MQTT dashboard."
-  },
-  {
-    "id": "ui_base_1",
-    "type": "ui-base",
-    "name": "Bikestation",
-    "path": "/dashboard",
-    "appIcon": "",
-    "includeClientData": true,
-    "acceptsClientConfig": [
-      "ui-notification",
-      "ui-control",
-      "ui-template"
-    ],
-    "showPathInSidebar": false,
-    "headerContent": "page",
-    "navigationStyle": "default",
-    "titleBarStyle": "default"
-  },
-  {
-    "id": "ui_theme_1",
-    "type": "ui-theme",
-    "name": "EcoHub Dark",
-    "colors": {
-      "surface": "#181c20",
-      "primary": "#00e676",
-      "bgPage": "#0d0f12",
-      "groupBg": "#181c20",
-      "groupOutline": "#2a3238"
+    {
+        "id": "a6b4c51fced8b873",
+        "type": "tab",
+        "label": "Recovered Nodes",
+        "disabled": false,
+        "info": "The nodes on this flow were missing a valid flow id when they were imported. They have been added to this flow so you can either restore or delete them.",
+        "env": []
     },
-    "sizes": {
-      "pagePadding": "16px",
-      "groupGap": "16px",
-      "groupBorderRadius": "8px",
-      "widgetGap": "12px"
-    }
-  },
-  {
-    "id": "broker_local",
-    "type": "mqtt-broker",
-    "name": "bikestation-broker",
-    "broker": "mosquitto",
-    "port": "1883",
-    "clientid": "nodered-bikestation-unified"
-  },
-  {
-    "id": "58826571fec7b729",
-    "type": "ui-theme",
-    "name": "EcoHub Dark",
-    "colors": {
-      "surface": "#181c20",
-      "primary": "#00e676",
-      "bgPage": "#0d0f12",
-      "groupBg": "#181c20",
-      "groupOutline": "#2a3238"
+    {
+        "id": "cc25d96a5ae42c89",
+        "type": "tab",
+        "label": "Smart Bikestation",
+        "disabled": false,
+        "info": "EcoHub-styled MQTT dashboard."
     },
-    "sizes": {
-      "pagePadding": "16px",
-      "groupGap": "16px",
-      "groupBorderRadius": "8px",
-      "widgetGap": "12px"
-    }
-  },
-  {
-    "id": "skin_theme_light",
-    "type": "ui-theme",
-    "name": "Glassmorphism Light (skin)",
-    "colors": {
-      "surface": "#ffffff",
-      "primary": "#0094CE",
-      "bgPage": "#eeeeee",
-      "groupBg": "#ffffff",
-      "groupOutline": "#cccccc"
+    {
+        "id": "ui_base_1",
+        "type": "ui-base",
+        "name": "Bikestation",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control",
+            "ui-template"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default"
     },
-    "sizes": {
-      "density": "default",
-      "pagePadding": "12px",
-      "groupGap": "12px",
-      "groupBorderRadius": "4px",
-      "widgetGap": "12px"
+    {
+        "id": "ui_theme_1",
+        "type": "ui-theme",
+        "name": "EcoHub Dark",
+        "colors": {
+            "surface": "#181c20",
+            "primary": "#00e676",
+            "bgPage": "#0d0f12",
+            "groupBg": "#181c20",
+            "groupOutline": "#2a3238"
+        },
+        "sizes": {
+            "pagePadding": "16px",
+            "groupGap": "16px",
+            "groupBorderRadius": "8px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "broker_local",
+        "type": "mqtt-broker",
+        "name": "bikestation-broker",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "nodered-bikestation-unified"
+    },
+    {
+        "id": "58826571fec7b729",
+        "type": "ui-theme",
+        "name": "EcoHub Dark",
+        "colors": {
+            "surface": "#181c20",
+            "primary": "#00e676",
+            "bgPage": "#0d0f12",
+            "groupBg": "#181c20",
+            "groupOutline": "#2a3238"
+        },
+        "sizes": {
+            "pagePadding": "16px",
+            "groupGap": "16px",
+            "groupBorderRadius": "8px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "skin_theme_light",
+        "type": "ui-theme",
+        "name": "Glassmorphism Light (skin)",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "3dfae6a90a7a167f",
+        "type": "ui-page",
+        "z": "cc25d96a5ae42c89",
+        "name": "EcoHub Central",
+        "ui": "ui_base_1",
+        "path": "/bikestation",
+        "layout": "grid",
+        "theme": "skin_theme_light",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 1,
+        "className": ""
+    },
+    {
+        "id": "ab14b8c0991b6a02",
+        "type": "ui-group",
+        "z": "cc25d96a5ae42c89",
+        "name": "KEY METRICS",
+        "page": "3dfae6a90a7a167f",
+        "width": 12,
+        "height": 1,
+        "order": 1,
+        "className": "room-gruene-box"
+    },
+    {
+        "id": "26bcbb8bfcede02c",
+        "type": "ui-group",
+        "z": "cc25d96a5ae42c89",
+        "name": "BIKE FLEET (4 Units)",
+        "page": "3dfae6a90a7a167f",
+        "width": 8,
+        "height": 1,
+        "order": 2,
+        "className": "room-blaue-box"
+    },
+    {
+        "id": "ccd65dd0a7a37ba9",
+        "type": "ui-group",
+        "z": "cc25d96a5ae42c89",
+        "name": "SYSTEM HEALTH & LOGS",
+        "page": "3dfae6a90a7a167f",
+        "width": 4,
+        "height": 1,
+        "order": 3
+    },
+    {
+        "id": "kiosk_page_1",
+        "type": "ui-page",
+        "z": "cc25d96a5ae42c89",
+        "name": "Kiosk",
+        "ui": "ui_base_1",
+        "path": "/kiosk",
+        "layout": "grid",
+        "theme": "skin_theme_light",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 2,
+        "className": ""
+    },
+    {
+        "id": "kiosk_grp_1",
+        "type": "ui-group",
+        "z": "cc25d96a5ae42c89",
+        "name": "KIOSK",
+        "page": "kiosk_page_1",
+        "width": 12,
+        "height": 1,
+        "order": 1,
+        "className": "kiosk-hero"
+    },
+    {
+        "id": "e8f3d13f0af759ae",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot summary",
+        "func": "// bikestation/slotN/state -> occupied count. reserved == bike not parked yet.\nlet state = flow.get('slotState') || {};\nlet slot = msg.topic.split('/')[1].replace('slot', '');\nlet st = String(msg.payload).trim().toLowerCase();\nstate[slot] = st === 'occupied';\nflow.set('slotState', state);\nlet occupied = Object.values(state).filter(v => v === true).length;\nmsg.payload = occupied + ' Bikes';\nreturn msg;",
+        "outputs": 1,
+        "x": 550,
+        "y": 140,
+        "wires": [
+            [
+                "4accbad6a9851944"
+            ]
+        ]
+    },
+    {
+        "id": "4accbad6a9851944",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "ab14b8c0991b6a02",
+        "order": 1,
+        "width": "2",
+        "height": 1,
+        "name": "IN USE",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#ffea00",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 740,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "394abba218bb4103",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot1/state",
+        "topic": "bikestation/slot1/state",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 250,
+        "wires": [
+            [
+                "090b098d59c8c92e",
+                "e8f3d13f0af759ae",
+                "fn_smart_logic",
+                "fn_kiosk_avail"
+            ]
+        ]
+    },
+    {
+        "id": "090b098d59c8c92e",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "parse s1 state",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "outputs": 1,
+        "x": 350,
+        "y": 250,
+        "wires": [
+            [
+                "b8a1d9351cfdd940"
+            ]
+        ]
+    },
+    {
+        "id": "b8a1d9351cfdd940",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "26bcbb8bfcede02c",
+        "order": 1,
+        "width": 2,
+        "height": 2,
+        "name": "BK-001",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "color": "#00e676",
+        "value": "AVAILABLE",
+        "x": 550,
+        "y": 250,
+        "wires": []
+    },
+    {
+        "id": "a7b8797171c84f6d",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "Dist 1",
+        "group": "26bcbb8bfcede02c",
+        "order": 2,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Distance",
+        "alwaysShowTitle": true,
+        "units": "cm",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "20",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "40",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 60,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 550,
+        "y": 290,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bdab4ff8f39f9429",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot2/state",
+        "topic": "bikestation/slot2/state",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 380,
+        "wires": [
+            [
+                "29a0536bd76f882c",
+                "e8f3d13f0af759ae",
+                "fn_smart_logic",
+                "fn_kiosk_avail"
+            ]
+        ]
+    },
+    {
+        "id": "29a0536bd76f882c",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "parse s2 state",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "outputs": 1,
+        "x": 350,
+        "y": 380,
+        "wires": [
+            [
+                "4e88a1934618af5f"
+            ]
+        ]
+    },
+    {
+        "id": "4e88a1934618af5f",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "26bcbb8bfcede02c",
+        "order": 3,
+        "width": 2,
+        "height": 2,
+        "name": "BK-002",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "color": "#00e676",
+        "value": "AVAILABLE",
+        "x": 550,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "50e5077c9051197c",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "Dist 2",
+        "group": "26bcbb8bfcede02c",
+        "order": 4,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Distance",
+        "alwaysShowTitle": true,
+        "units": "cm",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "20",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "40",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 60,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 550,
+        "y": 420,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "440ee16d4470cc0b",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot3/state",
+        "topic": "bikestation/slot3/state",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 510,
+        "wires": [
+            [
+                "c9f8890485a16b84",
+                "e8f3d13f0af759ae",
+                "fn_smart_logic",
+                "fn_kiosk_avail"
+            ]
+        ]
+    },
+    {
+        "id": "c9f8890485a16b84",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "parse s3 state",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "outputs": 1,
+        "x": 350,
+        "y": 510,
+        "wires": [
+            [
+                "de225884c811ca90"
+            ]
+        ]
+    },
+    {
+        "id": "de225884c811ca90",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "26bcbb8bfcede02c",
+        "order": 5,
+        "width": 2,
+        "height": 2,
+        "name": "BK-003",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "color": "#ffea00",
+        "value": "IN USE",
+        "x": 550,
+        "y": 510,
+        "wires": []
+    },
+    {
+        "id": "119680028c581e7c",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "Dist 3",
+        "group": "26bcbb8bfcede02c",
+        "order": 6,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Distance",
+        "alwaysShowTitle": true,
+        "units": "cm",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "20",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "40",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 60,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 550,
+        "y": 550,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2d449230a0af3c5c",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot4/state",
+        "topic": "bikestation/slot4/state",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 640,
+        "wires": [
+            [
+                "de6969cd102f4701",
+                "e8f3d13f0af759ae",
+                "fn_smart_logic",
+                "fn_kiosk_avail"
+            ]
+        ]
+    },
+    {
+        "id": "de6969cd102f4701",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "parse s4 state",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "outputs": 1,
+        "x": 350,
+        "y": 640,
+        "wires": [
+            [
+                "9bb5c144a316f088"
+            ]
+        ]
+    },
+    {
+        "id": "9bb5c144a316f088",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "26bcbb8bfcede02c",
+        "order": 7,
+        "width": 2,
+        "height": 2,
+        "name": "BK-004",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "color": "#00e676",
+        "value": "AVAILABLE",
+        "x": 550,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "67b5326c23b611b3",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "Dist 4",
+        "group": "26bcbb8bfcede02c",
+        "order": 8,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Distance",
+        "alwaysShowTitle": true,
+        "units": "cm",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "20",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "40",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 60,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 550,
+        "y": 680,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "comment_smart_logic",
+        "type": "comment",
+        "z": "cc25d96a5ae42c89",
+        "name": "\u2699\ufe0f SMART PARKING LOGIC \u2699\ufe0f",
+        "info": "Handles RFID assignments, LCD display, and LED color states.",
+        "x": 970,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "in_rfid_tap",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "RFID Tap",
+        "topic": "bikestation/entrance/nfc/tap",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 700,
+        "y": 580,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ]
+        ]
+    },
+    {
+        "id": "fn_smart_logic",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "Assign Slot & Control LEDs",
+        "func": "// Input: bikestation/slotN/state OR bikestation/entrance/nfc/tap\n// Output1: LCD (bikestation/entrance/oled/display), Output2: slot state publish\nlet slotState = flow.get('slotState') || {1: false, 2: false, 3: false, 4: false};\nlet reservedSlot = flow.get('reservedSlot') || null;\n\nlet outLCD = null;\nlet outState = null;\n\nif (msg.topic.startsWith('bikestation/slot')) {\n    let slot = msg.topic.split('/')[1].replace('slot', '');\n    let st = String(msg.payload).trim().toLowerCase();\n    let occupied = st === 'occupied';\n    slotState[slot] = occupied;\n    flow.set('slotState', slotState);\n    if (occupied && reservedSlot == slot) {\n        flow.set('reservedSlot', null);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Secured in Slot ' + slot + '!' };\n    }\n}\nelse if (msg.topic.includes('tap') || msg.topic.includes('nfc')) {\n    let targetSlot = null;\n    for (let i = 1; i <= 4; i++) {\n        if (!slotState[i]) { targetSlot = i; break; }\n    }\n    if (targetSlot) {\n        flow.set('reservedSlot', targetSlot);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Park at Slot ' + targetSlot };\n        outState = { topic: 'bikestation/slot' + targetSlot + '/state', payload: 'reserved', retain: true };\n    } else {\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Station Full!' };\n    }\n}\n\nreturn [outLCD, outState];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 560,
+        "wires": [
+            [
+                "out_lcd_screen"
+            ],
+            [
+                "out_slot_state"
+            ]
+        ]
+    },
+    {
+        "id": "out_lcd_screen",
+        "type": "mqtt out",
+        "z": "cc25d96a5ae42c89",
+        "name": "LCD Screen",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker_local",
+        "x": 1230,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "dist_in_1",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot1/distance",
+        "topic": "bikestation/slot1/distance",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 340,
+        "wires": [
+            [
+                "fn_esp_seen",
+                "fn_occ_1"
+            ]
+        ]
+    },
+    {
+        "id": "dist_in_2",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot2/distance",
+        "topic": "bikestation/slot2/distance",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 470,
+        "wires": [
+            [
+                "fn_esp_seen",
+                "fn_occ_2"
+            ]
+        ]
+    },
+    {
+        "id": "dist_in_3",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot3/distance",
+        "topic": "bikestation/slot3/distance",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 600,
+        "wires": [
+            [
+                "fn_esp_seen",
+                "fn_occ_3"
+            ]
+        ]
+    },
+    {
+        "id": "dist_in_4",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "slot4/distance",
+        "topic": "bikestation/slot4/distance",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 730,
+        "wires": [
+            [
+                "fn_esp_seen",
+                "fn_occ_4"
+            ]
+        ]
+    },
+    {
+        "id": "skin_css_sitestyle",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "",
+        "page": "",
+        "ui": "ui_base_1",
+        "name": "Glassmorphism CSS",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');\n\n.v-main {\n  background-image: url('https://images.hdqwalls.com/wallpapers/landscape-alpine-mountains-landscape-5k-1k.jpg');\n  background-size: cover;\n  background-repeat: no-repeat;\n  background-attachment: fixed;\n}\n\n.v-main::before {\n  content: '';\n  position: fixed;\n  inset: 0;\n  background: rgba(0, 0, 0, 0.08);\n  pointer-events: none;\n  z-index: 0;\n}\n\nbody {\n  font-family: 'Inter', sans-serif !important;\n}\n\n.nrdb-ui-group .v-card {\n  background: rgba(255, 255, 255, 0.1) !important;\n  backdrop-filter: blur(40px) saturate(180%) !important;\n  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;\n  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;\n  border-top: 0.5px solid rgba(255, 255, 255, 0.5) !important;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 0.5px 0 rgba(255, 255, 255, 0.6) !important;\n  border-radius: 16px !important;\n}\n\n.room-blaue-box .v-card { border-left: 4px solid #0094CE !important; }\n.room-gruene-box .v-card { border-left: 4px solid #3a9e3a !important; }\n\n.last-update-bar {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  padding: 4px 8px;\n  font-size: 13px;\n}\n.lu-item {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n.lu-dot {\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  display: inline-block;\n}\n.lu-name {\n  color: rgba(255,255,255,0.7);\n  font-weight: 500;\n}\n.lu-time {\n  color: #fff;\n  font-weight: 600;\n}\n\n/* ---------- user kiosk pane ---------- */\n.kiosk-hero .v-card {\n  background: rgba(13, 15, 18, 0.55) !important;\n  border: 1px solid rgba(255, 255, 255, 0.18) !important;\n  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35) !important;\n}\n.kiosk-hero-card .v-card {\n  background: rgba(13, 15, 18, 0.55) !important;\n  border: 1px solid rgba(255, 255, 255, 0.18) !important;\n  box-shadow: none !important;\n}\n",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "site:style",
+        "className": "",
+        "x": 940,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "skin_statusbar",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "ab14b8c0991b6a02",
+        "page": "",
+        "ui": "ui_base_1",
+        "name": "Status Bar",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n<Teleport v-if=\"mounted\" to=\"#app-bar-actions\">\n<div style=\"display:flex;gap:14px;align-items:center;padding:0 8px;font-size:13px\">\n  <div v-for=\"room in msg.payload\" :key=\"room.name\" style=\"display:flex;align-items:center;gap:4px\">\n    <span style=\"width:8px;height:8px;border-radius:50%;display:inline-block\" :style=\"'background:'+room.color\"></span>\n    <span style=\"color:rgba(0,0,0,0.8);font-weight:500\">{{room.name}}</span>\n    <span style=\"color:#222;font-weight:600\"> {{room.time}}</span>\n  </div>\n</div>\n</Teleport>\n</template>\n\n<script>\nexport default {\n  data() { return { mounted: false } },\n  mounted() { this.mounted = true }\n}\n</script>",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 910,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "out_slot_state",
+        "type": "mqtt out",
+        "z": "cc25d96a5ae42c89",
+        "name": "Publish slot state",
+        "topic": "",
+        "qos": "",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker_local",
+        "x": 1090,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "fn_occ_1",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "Occ Dec Slot 1",
+        "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 5) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot1/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 300,
+        "wires": [
+            [
+                "out_slot_state"
+            ],
+            [
+                "a7b8797171c84f6d"
+            ]
+        ]
+    },
+    {
+        "id": "fn_occ_2",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "Occ Dec Slot 2",
+        "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 5) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot2/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 440,
+        "wires": [
+            [
+                "out_slot_state"
+            ],
+            [
+                "50e5077c9051197c"
+            ]
+        ]
+    },
+    {
+        "id": "fn_occ_3",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "Occ Dec Slot 3",
+        "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 5) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot3/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 560,
+        "wires": [
+            [
+                "out_slot_state"
+            ],
+            [
+                "119680028c581e7c"
+            ]
+        ]
+    },
+    {
+        "id": "fn_occ_4",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "Occ Dec Slot 4",
+        "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 5) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot4/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 680,
+        "wires": [
+            [
+                "out_slot_state"
+            ],
+            [
+                "67b5326c23b611b3"
+            ]
+        ]
+    },
+    {
+        "id": "inj_cpu",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "sample cpu",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 930,
+        "y": 160,
+        "wires": [
+            [
+                "exec_cpu"
+            ]
+        ]
+    },
+    {
+        "id": "exec_cpu",
+        "type": "exec",
+        "z": "cc25d96a5ae42c89",
+        "command": "head -1 /proc/stat",
+        "addpay": false,
+        "append": "",
+        "useSpawn": false,
+        "timer": "",
+        "oldrc": false,
+        "name": "cpu sysinfo",
+        "x": 1130,
+        "y": 160,
+        "wires": [
+            [
+                "fn_cpu"
+            ],
+            [],
+            []
+        ],
+        "payloadType": "str"
+    },
+    {
+        "id": "fn_cpu",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "cpu pct",
+        "func": "var s = String(msg.payload||'').trim().split(/\\s+/);\nvar idle = parseInt(s[4]||'0',10);\nvar total = 0;\nfor (var i=1;i<s.length;i++){ var v=parseInt(s[i]||'0',10); if(!isNaN(v)) total+=v; }\nif (isNaN(idle) || total<=0) return null;\nvar last = context.get('last') || null;\ncontext.set('last',{t:total,idle:idle});\nif (!last) return null;\nvar dt = total - last.t, di = idle - last.idle;\nif (dt<=0 || di<0 || di>dt) return null;\nvar cpuPct = Math.round((1-(di/dt))*1000)/10;\nif (cpuPct<0) cpuPct=0; if (cpuPct>100) cpuPct=100;\nreturn {payload: cpuPct};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1280,
+        "y": 220,
+        "wires": [
+            [
+                "gauge_cpu"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_cpu",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "CPU",
+        "group": "ccd65dd0a7a37ba9",
+        "order": 1,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-tank",
+        "gstyle": "needle",
+        "title": "CPU Load",
+        "alwaysShowTitle": true,
+        "units": "",
+        "icon": "",
+        "prefix": "",
+        "suffix": " %",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "60",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "80",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 1370,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "inj_ram",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "sample ram",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 930,
+        "y": 80,
+        "wires": [
+            [
+                "exec_ram"
+            ]
+        ]
+    },
+    {
+        "id": "exec_ram",
+        "type": "exec",
+        "z": "cc25d96a5ae42c89",
+        "command": "awk '/MemTotal/{t=$2}/MemAvailable/{a=$2}END{print t,a}' /proc/meminfo",
+        "addpay": false,
+        "append": "",
+        "useSpawn": false,
+        "timer": "",
+        "oldrc": false,
+        "name": "ram sysinfo",
+        "x": 1110,
+        "y": 80,
+        "wires": [
+            [
+                "fn_ram"
+            ],
+            [],
+            []
+        ],
+        "payloadType": "str"
+    },
+    {
+        "id": "fn_ram",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "ram pct",
+        "func": "var parts = String(msg.payload||'').trim().split(/\\s+/);\nif (parts.length < 2) return null;\nvar tot = parseInt(parts[0],10), avail = parseInt(parts[1],10);\nif (isNaN(tot) || isNaN(avail) || tot<=0) return null;\nif (avail<0) avail=0; if (avail>tot) avail=tot;\nvar pct = Math.round((1-(avail/tot))*1000)/10;\nif (pct<0) pct=0; if (pct>100) pct=100;\nreturn {payload: pct};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1240,
+        "y": 20,
+        "wires": [
+            [
+                "gauge_ram"
+            ]
+        ]
+    },
+    {
+        "id": "gauge_ram",
+        "type": "ui-gauge",
+        "z": "cc25d96a5ae42c89",
+        "name": "RAM",
+        "group": "ccd65dd0a7a37ba9",
+        "order": 2,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-tank",
+        "gstyle": "needle",
+        "title": "RAM Usage",
+        "alwaysShowTitle": true,
+        "units": "",
+        "icon": "",
+        "prefix": "",
+        "suffix": " %",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#00c853",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "60",
+                "color": "#ffd54f",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "80",
+                "color": "#ff5252",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": "",
+        "sizeGap": "",
+        "sizeKeyThickness": "",
+        "className": "",
+        "x": 1370,
+        "y": 60,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b1a53279d7583d4c",
+        "type": "mqtt in",
+        "z": "cc25d96a5ae42c89",
+        "name": "nfc/tap",
+        "topic": "bikestation/entrance/nfc/tap",
+        "broker": "broker_local",
+        "inputs": 0,
+        "x": 150,
+        "y": 1200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "kiosk_hero_1",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "kiosk_grp_1",
+        "page": "kiosk_page_1",
+        "ui": "ui_base_1",
+        "name": "Kiosk Hero",
+        "order": 1,
+        "width": 12,
+        "height": 5,
+        "format": "<template>\n  <div class=\"kiosk-wrap\" :class=\"`is-${tone}`\">\n    <div class=\"kiosk-hint\">TAP CARD TO ENTER</div>\n    <div class=\"kiosk-count\" v-if=\"free !== null\">{{ free }}</div>\n    <div class=\"kiosk-cap\" v-if=\"free !== null\">of {{ total }} available</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { free: null, total: 4, tone: 'ok' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object' && p.free !== undefined) {\n        this.free = p.free;\n        this.total = p.total;\n        this.tone = p.free > 0 ? 'ok' : 'full';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.kiosk-wrap {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: clamp(6px, 1.5vh, 18px);\n  width: 100%;\n  min-height: clamp(220px, 42vh, 420px);\n  text-align: center;\n}\n.kiosk-hint {\n  font-size: clamp(20px, 5vw, 54px);\n  font-weight: 700;\n  letter-spacing: 2px;\n  color: #ffffff;\n  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);\n}\n.kiosk-count {\n  font-size: clamp(80px, 20vw, 210px);\n  font-weight: 800;\n  line-height: 0.95;\n  color: #00e676;\n  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.6);\n}\n.kiosk-wrap.is-full .kiosk-count { color: #ff5252; }\n.kiosk-cap {\n  font-size: clamp(14px, 3vw, 30px);\n  font-weight: 600;\n  color: rgba(255, 255, 255, 0.88);\n  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);\n}\n</style>",
+        "storeOutMessages": false,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "kiosk-hero-card",
+        "x": 590,
+        "y": 760,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fn_kiosk_avail",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "kiosk availability",
+        "func": "// bikestation/slotN/state -> availability for the user kiosk pane\nlet s = flow.get('slotState') || {};\nlet m = (msg.topic || '').match(/slot(\\d+)/);\nif (m) {\n  s[m[1]] = String(msg.payload).trim().toLowerCase() === 'occupied';\n  flow.set('slotState', s);\n}\nlet free = 0;\nfor (let i = 1; i <= 4; i++) { if (s[i] !== true) free++; }\nreturn { topic: 'kiosk', payload: { free: free, total: 4 } };",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 760,
+        "wires": [
+            [
+                "kiosk_hero_1"
+            ]
+        ]
+    },
+    {
+        "id": "fn_esp_seen",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "esp last seen",
+        "func": "// Proof-of-life tap on the raw distance feed. Records the arrival\n// time per ESP32, then passes the message on untouched.\n// ESP32-1 drives slot1/slot2, ESP32-2 drives slot3/slot4.\nconst owner = { slot1: 'esp1', slot2: 'esp1',\n                slot3: 'esp2', slot4: 'esp2' };\nconst slot = String(msg.topic || '').split('/')[1];\nconst seen = flow.get('espSeen') || {};\nif (owner[slot]) {\n    seen[owner[slot]] = Date.now();\n    flow.set('espSeen', seen);\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1180,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "inj_esp_ck",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "esp check",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "3",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 1300,
+        "y": 260,
+        "wires": [
+            [
+                "fn_esp_status"
+            ]
+        ]
+    },
+    {
+        "id": "fn_esp_status",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "esp status",
+        "func": "// A healthy ESP32 publishes roughly twice a second, so 20s without\n// a single message means it is off, booting, or its MQTT client is\n// wedged. Ping is not used: a rebooting board answers ICMP before it\n// reconnects, so it would look healthy while publishing nothing.\nconst LIMIT = 20;\nconst seen = flow.get('espSeen') || {};\nconst now = Date.now();\nconst out = [];\nfor (const d of [\n        { id: 'esp1', label: 'ESP32-1', slots: 'Slots 1-2' },\n        { id: 'esp2', label: 'ESP32-2', slots: 'Slots 3-4' }]) {\n    const t = seen[d.id];\n    const secs = t ? Math.round((now - t) / 1000) : null;\n    const online = secs !== null && secs <= LIMIT;\n    out.push({\n        topic: d.id,\n        payload: {\n            label: d.label,\n            slots: d.slots,\n            online: online,\n            secs: secs,\n            text: online ? 'ONLINE'\n                 : secs === null ? 'NO DATA' : 'OFFLINE ' + secs + 's'\n        }\n    });\n}\nreturn [out];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1480,
+        "y": 260,
+        "wires": [
+            [
+                "esp_badge_1"
+            ],
+            [
+                "esp_badge_2"
+            ]
+        ]
+    },
+    {
+        "id": "esp_badge_1",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "ab14b8c0991b6a02",
+        "page": "3dfae6a90a7a167f",
+        "ui": "ui_base_1",
+        "name": "ESP32-1 status",
+        "order": 1,
+        "width": 5,
+        "height": 1,
+        "head": "",
+        "storeOutMessages": false,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "esp-badge-wrap",
+        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
+        "x": 1660,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "esp_badge_2",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "ab14b8c0991b6a02",
+        "page": "3dfae6a90a7a167f",
+        "ui": "ui_base_1",
+        "name": "ESP32-2 status",
+        "order": 1,
+        "width": 5,
+        "height": 1,
+        "head": "",
+        "storeOutMessages": false,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "esp-badge-wrap",
+        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
+        "x": 1660,
+        "y": 300,
+        "wires": [
+            []
+        ]
     }
-  },
-  {
-    "id": "3dfae6a90a7a167f",
-    "type": "ui-page",
-    "z": "cc25d96a5ae42c89",
-    "name": "EcoHub Central",
-    "ui": "ui_base_1",
-    "path": "/bikestation",
-    "layout": "grid",
-    "theme": "skin_theme_light",
-    "breakpoints": [
-      {
-        "name": "Default",
-        "px": 0,
-        "cols": 3
-      },
-      {
-        "name": "Tablet",
-        "px": 576,
-        "cols": 6
-      },
-      {
-        "name": "Desktop",
-        "px": 1024,
-        "cols": 12
-      }
-    ],
-    "order": 1,
-    "className": ""
-  },
-  {
-    "id": "ab14b8c0991b6a02",
-    "type": "ui-group",
-    "z": "cc25d96a5ae42c89",
-    "name": "KEY METRICS",
-    "page": "3dfae6a90a7a167f",
-    "width": 12,
-    "height": 1,
-    "order": 1,
-    "className": "room-gruene-box"
-  },
-  {
-    "id": "26bcbb8bfcede02c",
-    "type": "ui-group",
-    "z": "cc25d96a5ae42c89",
-    "name": "BIKE FLEET (4 Units)",
-    "page": "3dfae6a90a7a167f",
-    "width": 8,
-    "height": 1,
-    "order": 2,
-    "className": "room-blaue-box"
-  },
-  {
-    "id": "ccd65dd0a7a37ba9",
-    "type": "ui-group",
-    "z": "cc25d96a5ae42c89",
-    "name": "SYSTEM HEALTH & LOGS",
-    "page": "3dfae6a90a7a167f",
-    "width": 4,
-    "height": 1,
-    "order": 3
-  },
-  {
-    "id": "37bb03bb356b419e",
-    "type": "ui-group",
-    "z": "cc25d96a5ae42c89",
-    "name": "LIVE CHARTS",
-    "page": "3dfae6a90a7a167f",
-    "width": 12,
-    "height": 1,
-    "order": 4
-  },
-  {
-    "id": "6594d07e533444c7",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "system/status",
-    "topic": "bikestation/bikeslot-test/status",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 60,
-    "wires": [
-      [
-        "8ff3a8b305c94978",
-        "fn_log_event"
-      ]
-    ]
-  },
-  {
-    "id": "8ff3a8b305c94978",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse status",
-    "func": "var status = msg.payload.toString().toUpperCase();\nmsg.payload = status;\nreturn msg;",
-    "outputs": 1,
-    "x": 350,
-    "y": 60,
-    "wires": [
-      [
-        "fbfca369cbdb8ae6"
-      ]
-    ]
-  },
-  {
-    "id": "fbfca369cbdb8ae6",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "ab14b8c0991b6a02",
-    "order": 1,
-    "width": 4,
-    "height": 1,
-    "name": "System Status",
-    "label": "",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "style": false,
-    "font": "",
-    "fontSize": "",
-    "color": "#00e676",
-    "wrapText": false,
-    "className": "",
-    "value": "ONLINE",
-    "valueType": "msg",
-    "x": 550,
-    "y": 60,
-    "wires": []
-  },
-  {
-    "id": "e8f3d13f0af759ae",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot summary",
-    "func": "// bikestation/slotN/state -> occupied count. reserved == bike not parked yet.\nlet state = flow.get('slotState') || {};\nlet slot = msg.topic.split('/')[1].replace('slot', '');\nlet st = String(msg.payload).trim().toLowerCase();\nstate[slot] = st === 'occupied';\nflow.set('slotState', state);\nlet occupied = Object.values(state).filter(v => v === true).length;\nmsg.payload = occupied + ' Bikes';\nreturn msg;",
-    "outputs": 1,
-    "x": 550,
-    "y": 140,
-    "wires": [
-      [
-        "4accbad6a9851944"
-      ]
-    ]
-  },
-  {
-    "id": "4accbad6a9851944",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "ab14b8c0991b6a02",
-    "order": 2,
-    "width": 4,
-    "height": 1,
-    "name": "IN USE",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#ffea00",
-    "value": "0 Bikes",
-    "x": 750,
-    "y": 140,
-    "wires": []
-  },
-  {
-    "id": "6c5187d558a06f8b",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "system/alerts",
-    "topic": "bikestation/system/alerts",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 100,
-    "wires": [
-      [
-        "5f967a1f8f3251c1",
-        "fn_log_event"
-      ]
-    ]
-  },
-  {
-    "id": "5f967a1f8f3251c1",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse alert",
-    "func": "let p; try { p = JSON.parse(msg.payload); } catch (e) { return null; }\nvar text = (p.type || 'MAINTENANCE').toUpperCase() + (p.slot ? ' S' + p.slot : '');\nreturn [{ payload: text }, { payload: '\ud83d\udea8 ' + text }];",
-    "outputs": 2,
-    "x": 350,
-    "y": 100,
-    "wires": [
-      [
-        "34471e94dad0fc8b"
-      ],
-      [
-        "82c9607a8c82c768"
-      ]
-    ]
-  },
-  {
-    "id": "34471e94dad0fc8b",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "ab14b8c0991b6a02",
-    "order": 3,
-    "width": 4,
-    "height": 1,
-    "name": "MAINTENANCE",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#ff3d00",
-    "value": "0 Bikes",
-    "x": 550,
-    "y": 100,
-    "wires": []
-  },
-  {
-    "id": "82c9607a8c82c768",
-    "type": "ui-notification",
-    "z": "cc25d96a5ae42c89",
-    "position": "top right",
-    "colorDefault": false,
-    "color": "#ff3d00",
-    "displayTime": "6",
-    "outputs": 1,
-    "name": "Alert Popup",
-    "x": 550,
-    "y": 180,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "394abba218bb4103",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot1/state",
-    "topic": "bikestation/slot1/state",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 250,
-    "wires": [
-      [
-        "090b098d59c8c92e",
-        "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_log_event",
-        "fn_kiosk_avail"
-      ]
-    ]
-  },
-  {
-    "id": "090b098d59c8c92e",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse s1 state",
-    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
-    "outputs": 1,
-    "x": 350,
-    "y": 250,
-    "wires": [
-      [
-        "b8a1d9351cfdd940"
-      ]
-    ]
-  },
-  {
-    "id": "b8a1d9351cfdd940",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "26bcbb8bfcede02c",
-    "order": 1,
-    "width": 2,
-    "height": 2,
-    "name": "BK-001",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#00e676",
-    "value": "AVAILABLE",
-    "x": 550,
-    "y": 250,
-    "wires": []
-  },
-  {
-    "id": "a7b8797171c84f6d",
-    "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "Dist 1",
-    "group": "26bcbb8bfcede02c",
-    "order": 2,
-    "value": "payload",
-    "valueType": "msg",
-    "width": 6,
-    "height": 4,
-    "gtype": "gauge-half",
-    "gstyle": "needle",
-    "title": "Distance",
-    "alwaysShowTitle": true,
-    "units": "cm",
-    "icon": "",
-    "prefix": "",
-    "suffix": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 20,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 40,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "min": 0,
-    "max": 60,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "className": "",
-    "x": 550,
-    "y": 290,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "bdab4ff8f39f9429",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot2/state",
-    "topic": "bikestation/slot2/state",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 380,
-    "wires": [
-      [
-        "29a0536bd76f882c",
-        "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_kiosk_avail"
-      ]
-    ]
-  },
-  {
-    "id": "29a0536bd76f882c",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse s2 state",
-    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
-    "outputs": 1,
-    "x": 350,
-    "y": 380,
-    "wires": [
-      [
-        "4e88a1934618af5f"
-      ]
-    ]
-  },
-  {
-    "id": "4e88a1934618af5f",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "26bcbb8bfcede02c",
-    "order": 3,
-    "width": 2,
-    "height": 2,
-    "name": "BK-002",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#00e676",
-    "value": "AVAILABLE",
-    "x": 550,
-    "y": 380,
-    "wires": []
-  },
-  {
-    "id": "50e5077c9051197c",
-    "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "Dist 2",
-    "group": "26bcbb8bfcede02c",
-    "order": 4,
-    "value": "payload",
-    "valueType": "msg",
-    "width": 6,
-    "height": 4,
-    "gtype": "gauge-half",
-    "gstyle": "needle",
-    "title": "Distance",
-    "alwaysShowTitle": true,
-    "units": "cm",
-    "icon": "",
-    "prefix": "",
-    "suffix": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 20,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 40,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "min": 0,
-    "max": 60,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "className": "",
-    "x": 550,
-    "y": 420,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "440ee16d4470cc0b",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot3/state",
-    "topic": "bikestation/slot3/state",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 510,
-    "wires": [
-      [
-        "c9f8890485a16b84",
-        "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_kiosk_avail"
-      ]
-    ]
-  },
-  {
-    "id": "c9f8890485a16b84",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse s3 state",
-    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
-    "outputs": 1,
-    "x": 350,
-    "y": 510,
-    "wires": [
-      [
-        "de225884c811ca90"
-      ]
-    ]
-  },
-  {
-    "id": "de225884c811ca90",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "26bcbb8bfcede02c",
-    "order": 5,
-    "width": 2,
-    "height": 2,
-    "name": "BK-003",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#ffea00",
-    "value": "IN USE",
-    "x": 550,
-    "y": 510,
-    "wires": []
-  },
-  {
-    "id": "119680028c581e7c",
-    "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "Dist 3",
-    "group": "26bcbb8bfcede02c",
-    "order": 6,
-    "value": "payload",
-    "valueType": "msg",
-    "width": 6,
-    "height": 4,
-    "gtype": "gauge-half",
-    "gstyle": "needle",
-    "title": "Distance",
-    "alwaysShowTitle": true,
-    "units": "cm",
-    "icon": "",
-    "prefix": "",
-    "suffix": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 20,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 40,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "min": 0,
-    "max": 60,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "className": "",
-    "x": 550,
-    "y": 550,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "2d449230a0af3c5c",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot4/state",
-    "topic": "bikestation/slot4/state",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 640,
-    "wires": [
-      [
-        "de6969cd102f4701",
-        "e8f3d13f0af759ae",
-        "fn_smart_logic",
-        "fn_kiosk_avail"
-      ]
-    ]
-  },
-  {
-    "id": "de6969cd102f4701",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "parse s4 state",
-    "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
-    "outputs": 1,
-    "x": 350,
-    "y": 640,
-    "wires": [
-      [
-        "9bb5c144a316f088"
-      ]
-    ]
-  },
-  {
-    "id": "9bb5c144a316f088",
-    "type": "ui-text",
-    "z": "cc25d96a5ae42c89",
-    "group": "26bcbb8bfcede02c",
-    "order": 7,
-    "width": 2,
-    "height": 2,
-    "name": "BK-004",
-    "format": "{{msg.payload}}",
-    "layout": "row-spread",
-    "color": "#00e676",
-    "value": "AVAILABLE",
-    "x": 550,
-    "y": 640,
-    "wires": []
-  },
-  {
-    "id": "67b5326c23b611b3",
-    "type": "ui-gauge",
-    "z": "cc25d96a5ae42c89",
-    "name": "Dist 4",
-    "group": "26bcbb8bfcede02c",
-    "order": 8,
-    "value": "payload",
-    "valueType": "msg",
-    "width": 6,
-    "height": 4,
-    "gtype": "gauge-half",
-    "gstyle": "needle",
-    "title": "Distance",
-    "alwaysShowTitle": true,
-    "units": "cm",
-    "icon": "",
-    "prefix": "",
-    "suffix": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 20,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 40,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "min": 0,
-    "max": 60,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "className": "",
-    "x": 550,
-    "y": 680,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "56a6534916ee0486",
-    "type": "ui-chart",
-    "z": "cc25d96a5ae42c89",
-    "group": "37bb03bb356b419e",
-    "name": "Distance History",
-    "order": 1,
-    "chartType": "line",
-    "yAxisLabel": "cm",
-    "ymin": 0,
-    "ymax": 200,
-    "width": 12,
-    "height": 7,
-    "x": 350,
-    "y": 1100,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "b1a53279d7583d4c",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "nfc/tap",
-    "topic": "bikestation/entrance/nfc/tap",
-    "broker": "broker_local",
-    "inputs": 0,
-    "x": 150,
-    "y": 1200,
-    "wires": [
-      [
-        "fn_log_event"
-      ]
-    ]
-  },
-  {
-    "id": "e62574251e991fff",
-    "type": "ui-table",
-    "z": "cc25d96a5ae42c89",
-    "group": "ccd65dd0a7a37ba9",
-    "name": "Live Activity Log",
-    "order": 3,
-    "width": 4,
-    "height": 8,
-    "x": 550,
-    "y": 1200,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "comment_smart_logic",
-    "type": "comment",
-    "z": "cc25d96a5ae42c89",
-    "name": "\u2699\ufe0f SMART PARKING LOGIC \u2699\ufe0f",
-    "info": "Handles RFID assignments, LCD display, and LED color states.",
-    "x": 770,
-    "y": 500,
-    "wires": []
-  },
-  {
-    "id": "in_rfid_tap",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "RFID Tap",
-    "topic": "bikestation/entrance/nfc/tap",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 700,
-    "y": 580,
-    "wires": [
-      [
-        "fn_smart_logic"
-      ]
-    ]
-  },
-  {
-    "id": "fn_smart_logic",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "Assign Slot & Control LEDs",
-    "func": "// Input: bikestation/slotN/state OR bikestation/entrance/nfc/tap\n// Output1: LCD (bikestation/entrance/oled/display), Output2: slot state publish\nlet slotState = flow.get('slotState') || {1: false, 2: false, 3: false, 4: false};\nlet reservedSlot = flow.get('reservedSlot') || null;\n\nlet outLCD = null;\nlet outState = null;\n\nif (msg.topic.startsWith('bikestation/slot')) {\n    let slot = msg.topic.split('/')[1].replace('slot', '');\n    let st = String(msg.payload).trim().toLowerCase();\n    let occupied = st === 'occupied';\n    slotState[slot] = occupied;\n    flow.set('slotState', slotState);\n    if (occupied && reservedSlot == slot) {\n        flow.set('reservedSlot', null);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Secured in Slot ' + slot + '!' };\n    }\n}\nelse if (msg.topic.includes('tap') || msg.topic.includes('nfc')) {\n    let targetSlot = null;\n    for (let i = 1; i <= 4; i++) {\n        if (!slotState[i]) { targetSlot = i; break; }\n    }\n    if (targetSlot) {\n        flow.set('reservedSlot', targetSlot);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Park at Slot ' + targetSlot };\n        outState = { topic: 'bikestation/slot' + targetSlot + '/state', payload: 'reserved', retain: true };\n    } else {\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Station Full!' };\n    }\n}\n\nreturn [outLCD, outState];",
-    "outputs": 2,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 980,
-    "y": 560,
-    "wires": [
-      [
-        "out_lcd_screen"
-      ],
-      [
-        "out_slot_state"
-      ]
-    ]
-  },
-  {
-    "id": "out_lcd_screen",
-    "type": "mqtt out",
-    "z": "cc25d96a5ae42c89",
-    "name": "LCD Screen",
-    "topic": "",
-    "qos": "0",
-    "retain": "false",
-    "respTopic": "",
-    "contentType": "",
-    "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "broker_local",
-    "x": 1230,
-    "y": 540,
-    "wires": []
-  },
-  {
-    "id": "dist_in_1",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot1/distance",
-    "topic": "bikestation/slot1/distance",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 340,
-    "wires": [
-      [
-        "fn_occ_1"
-      ]
-    ]
-  },
-  {
-    "id": "dist_in_2",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot2/distance",
-    "topic": "bikestation/slot2/distance",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 470,
-    "wires": [
-      [
-        "fn_occ_2"
-      ]
-    ]
-  },
-  {
-    "id": "dist_in_3",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot3/distance",
-    "topic": "bikestation/slot3/distance",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 600,
-    "wires": [
-      [
-        "fn_occ_3"
-      ]
-    ]
-  },
-  {
-    "id": "dist_in_4",
-    "type": "mqtt in",
-    "z": "cc25d96a5ae42c89",
-    "name": "slot4/distance",
-    "topic": "bikestation/slot4/distance",
-    "qos": "0",
-    "datatype": "auto-detect",
-    "broker": "broker_local",
-    "nl": false,
-    "rap": true,
-    "rh": 0,
-    "inputs": 0,
-    "x": 150,
-    "y": 730,
-    "wires": [
-      [
-        "fn_occ_4"
-      ]
-    ]
-  },
-  {
-    "id": "skin_css_sitestyle",
-    "type": "ui-template",
-    "z": "cc25d96a5ae42c89",
-    "group": "",
-    "page": "",
-    "ui": "ui_base_1",
-    "name": "Glassmorphism CSS",
-    "order": 1,
-    "width": 0,
-    "height": 0,
-    "head": "",
-    "format": "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');\n\n.v-main {\n  background-image: url('https://images.hdqwalls.com/wallpapers/landscape-alpine-mountains-landscape-5k-1k.jpg');\n  background-size: cover;\n  background-repeat: no-repeat;\n  background-attachment: fixed;\n}\n\n.v-main::before {\n  content: '';\n  position: fixed;\n  inset: 0;\n  background: rgba(0, 0, 0, 0.08);\n  pointer-events: none;\n  z-index: 0;\n}\n\nbody {\n  font-family: 'Inter', sans-serif !important;\n}\n\n.nrdb-ui-group .v-card {\n  background: rgba(255, 255, 255, 0.1) !important;\n  backdrop-filter: blur(40px) saturate(180%) !important;\n  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;\n  border: 0.5px solid rgba(255, 255, 255, 0.3) !important;\n  border-top: 0.5px solid rgba(255, 255, 255, 0.5) !important;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 0.5px 0 rgba(255, 255, 255, 0.6) !important;\n  border-radius: 16px !important;\n}\n\n.room-blaue-box .v-card { border-left: 4px solid #0094CE !important; }\n.room-gruene-box .v-card { border-left: 4px solid #3a9e3a !important; }\n\n.last-update-bar {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  padding: 4px 8px;\n  font-size: 13px;\n}\n.lu-item {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n.lu-dot {\n  width: 8px;\n  height: 8px;\n  border-radius: 50%;\n  display: inline-block;\n}\n.lu-name {\n  color: rgba(255,255,255,0.7);\n  font-weight: 500;\n}\n.lu-time {\n  color: #fff;\n  font-weight: 600;\n}\n\n/* ---------- user kiosk pane ---------- */\n.kiosk-hero .v-card {\n  background: rgba(13, 15, 18, 0.55) !important;\n  border: 1px solid rgba(255, 255, 255, 0.18) !important;\n  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35) !important;\n}\n.kiosk-hero-card .v-card {\n  background: rgba(13, 15, 18, 0.55) !important;\n  border: 1px solid rgba(255, 255, 255, 0.18) !important;\n  box-shadow: none !important;\n}\n",
-    "storeOutMessages": true,
-    "passthru": false,
-    "resendOnRefresh": true,
-    "templateScope": "site:style",
-    "className": "",
-    "x": 900,
-    "y": 780,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "skin_statusbar",
-    "type": "ui-template",
-    "z": "cc25d96a5ae42c89",
-    "group": "ab14b8c0991b6a02",
-    "page": "",
-    "ui": "ui_base_1",
-    "name": "Status Bar",
-    "order": 4,
-    "width": 0,
-    "height": 0,
-    "head": "",
-    "format": "<template>\n<Teleport v-if=\"mounted\" to=\"#app-bar-actions\">\n<div style=\"display:flex;gap:14px;align-items:center;padding:0 8px;font-size:13px\">\n  <div v-for=\"room in msg.payload\" :key=\"room.name\" style=\"display:flex;align-items:center;gap:4px\">\n    <span style=\"width:8px;height:8px;border-radius:50%;display:inline-block\" :style=\"'background:'+room.color\"></span>\n    <span style=\"color:rgba(0,0,0,0.8);font-weight:500\">{{room.name}}</span>\n    <span style=\"color:#222;font-weight:600\"> {{room.time}}</span>\n  </div>\n</div>\n</Teleport>\n</template>\n\n<script>\nexport default {\n  data() { return { mounted: false } },\n  mounted() { this.mounted = true }\n}\n</script>",
-    "storeOutMessages": true,
-    "passthru": false,
-    "resendOnRefresh": true,
-    "templateScope": "local",
-    "className": "",
-    "x": 650,
-    "y": 520,
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "out_slot_state",
-    "type": "mqtt out",
-    "z": "cc25d96a5ae42c89",
-    "name": "Publish slot state",
-    "topic": "",
-    "qos": "",
-    "retain": "true",
-    "respTopic": "",
-    "contentType": "",
-    "userProps": "",
-    "correl": "",
-    "expiry": "",
-    "broker": "broker_local",
-    "x": 940,
-    "y": 900,
-    "wires": []
-  },
-  {
-    "id": "fn_occ_1",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "Occ Dec Slot 1",
-    "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot1/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-    "outputs": 2,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 620,
-    "y": 884,
-    "wires": [
-      [
-        "out_slot_state"
-      ],
-      [
-        "a7b8797171c84f6d",
-        "56a6534916ee0486"
-      ]
-    ]
-  },
-  {
-    "id": "fn_occ_2",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "Occ Dec Slot 2",
-    "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot2/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-    "outputs": 2,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 620,
-    "y": 888,
-    "wires": [
-      [
-        "out_slot_state"
-      ],
-      [
-        "50e5077c9051197c",
-        "56a6534916ee0486"
-      ]
-    ]
-  },
-  {
-    "id": "fn_occ_3",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "Occ Dec Slot 3",
-    "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot3/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-    "outputs": 2,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 620,
-    "y": 892,
-    "wires": [
-      [
-        "out_slot_state"
-      ],
-      [
-        "119680028c581e7c",
-        "56a6534916ee0486"
-      ]
-    ]
-  },
-  {
-    "id": "fn_occ_4",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "Occ Dec Slot 4",
-    "func": "var dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nmsg.payload = (isNaN(dist) || dist >= 10) ? 'free' : 'occupied';\nmsg.topic = 'bikestation/slot4/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-    "outputs": 2,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 620,
-    "y": 896,
-    "wires": [
-      [
-        "out_slot_state"
-      ],
-      [
-        "67b5326c23b611b3",
-        "56a6534916ee0486"
-      ]
-    ]
-  },
-  {
-    "id": "fn_log_event",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "log event",
-    "func": "function fmt(v){\n  if (v===null||v===undefined) return '';\n  if (typeof v==='object') { if (v.state!==undefined) return 'slot'+(v.slot!==undefined?': '+v.slot:'')+' = '+v.state; return JSON.stringify(v); }\n  return String(v);\n}\nvar detail = fmt(msg.payload);\nvar now = new Date();\nvar pad = function(n){ return (n<10?'0':'')+n; };\nvar ts = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());\nreturn [{\n  topic: 'log',\n  time: ts,\n  detail: (msg.topic||'event') + (detail? ' :: '+detail : ''),\n  eventStatus: msg.payload && msg.payload.state ? 'ok' : 'info'\n}];",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 400,
-    "y": 40,
-    "wires": [
-      [
-        "e62574251e991fff"
-      ]
-    ]
-  },
-  {
-    "id": "inj_cpu",
-    "type": "inject",
-    "z": "cc25d96a5ae42c89",
-    "name": "sample cpu",
-    "props": [
-      {
-        "p": "payload"
-      },
-      {
-        "p": "topic",
-        "vt": "str"
-      }
-    ],
-    "repeat": "5",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "payload": "",
-    "payloadType": "date",
-    "x": 120,
-    "y": 40,
-    "wires": [
-      [
-        "exec_cpu"
-      ]
-    ]
-  },
-  {
-    "id": "exec_cpu",
-    "type": "exec",
-    "z": "cc25d96a5ae42c89",
-    "name": "cpu sysinfo",
-    "command": "head -1 /proc/stat",
-    "addpay": false,
-    "append": "",
-    "useSpawn": false,
-    "timer": "",
-    "oldrc": false,
-    "payloadType": "str",
-    "x": 260,
-    "y": 40,
-    "wires": [
-      [
-        "fn_cpu"
-      ]
-    ]
-  },
-  {
-    "id": "fn_cpu",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "cpu pct",
-    "func": "var s = String(msg.payload||'').trim().split(/\\s+/);\nvar idle = parseInt(s[4]||'0',10);\nvar total = 0;\nfor (var i=1;i<s.length;i++){ var v=parseInt(s[i]||'0',10); if(!isNaN(v)) total+=v; }\nif (isNaN(idle) || total<=0) return null;\nvar last = context.get('last') || null;\ncontext.set('last',{t:total,idle:idle});\nif (!last) return null;\nvar dt = total - last.t, di = idle - last.idle;\nif (dt<=0 || di<0 || di>dt) return null;\nvar cpuPct = Math.round((1-(di/dt))*1000)/10;\nif (cpuPct<0) cpuPct=0; if (cpuPct>100) cpuPct=100;\nreturn {payload: cpuPct};",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 400,
-    "y": 40,
-    "wires": [
-      [
-        "gauge_cpu"
-      ]
-    ]
-  },
-  {
-    "id": "gauge_cpu",
-    "type": "ui-gauge",
-    "name": "CPU",
-    "group": "ccd65dd0a7a37ba9",
-    "order": 1,
-    "width": 4,
-    "height": 3,
-    "gtype": "gauge",
-    "gstyle": "needle",
-    "title": "CPU Load",
-    "ui": "",
-    "value": "payload",
-    "valueType": "msg",
-    "min": 0,
-    "max": 100,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "prefix": "",
-    "suffix": " %",
-    "units": "",
-    "icon": "",
-    "className": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 60,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 80,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "alwaysShowTitle": true,
-    "x": 0,
-    "y": 0,
-    "z": "cc25d96a5ae42c89",
-    "wires": []
-  },
-  {
-    "id": "inj_ram",
-    "type": "inject",
-    "z": "cc25d96a5ae42c89",
-    "name": "sample ram",
-    "props": [
-      {
-        "p": "payload"
-      },
-      {
-        "p": "topic",
-        "vt": "str"
-      }
-    ],
-    "repeat": "5",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "payload": "",
-    "payloadType": "date",
-    "x": 120,
-    "y": 40,
-    "wires": [
-      [
-        "exec_ram"
-      ]
-    ]
-  },
-  {
-    "id": "exec_ram",
-    "type": "exec",
-    "z": "cc25d96a5ae42c89",
-    "name": "ram sysinfo",
-    "command": "awk '/MemTotal/{t=$2}/MemAvailable/{a=$2}END{print t,a}' /proc/meminfo",
-    "addpay": false,
-    "append": "",
-    "useSpawn": false,
-    "timer": "",
-    "oldrc": false,
-    "payloadType": "str",
-    "x": 260,
-    "y": 40,
-    "wires": [
-      [
-        "fn_ram"
-      ]
-    ]
-  },
-  {
-    "id": "fn_ram",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "ram pct",
-    "func": "var parts = String(msg.payload||'').trim().split(/\\s+/);\nif (parts.length < 2) return null;\nvar tot = parseInt(parts[0],10), avail = parseInt(parts[1],10);\nif (isNaN(tot) || isNaN(avail) || tot<=0) return null;\nif (avail<0) avail=0; if (avail>tot) avail=tot;\nvar pct = Math.round((1-(avail/tot))*1000)/10;\nif (pct<0) pct=0; if (pct>100) pct=100;\nreturn {payload: pct};",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 400,
-    "y": 40,
-    "wires": [
-      [
-        "gauge_ram"
-      ]
-    ]
-  },
-  {
-    "id": "gauge_ram",
-    "type": "ui-gauge",
-    "name": "RAM",
-    "group": "ccd65dd0a7a37ba9",
-    "order": 2,
-    "width": 4,
-    "height": 3,
-    "gtype": "gauge",
-    "gstyle": "needle",
-    "title": "RAM Usage",
-    "ui": "",
-    "value": "payload",
-    "valueType": "msg",
-    "min": 0,
-    "max": 100,
-    "sizeThickness": "",
-    "sizeGap": "",
-    "sizeKeyThickness": "",
-    "prefix": "",
-    "suffix": " %",
-    "units": "",
-    "icon": "",
-    "className": "",
-    "segments": [
-      {
-        "from": 0,
-        "color": "#00c853",
-        "label": ""
-      },
-      {
-        "from": 60,
-        "color": "#ffd54f",
-        "label": ""
-      },
-      {
-        "from": 80,
-        "color": "#ff5252",
-        "label": ""
-      }
-    ],
-    "alwaysShowTitle": true,
-    "x": 0,
-    "y": 0,
-    "z": "cc25d96a5ae42c89",
-    "wires": []
-  },
-  {
-    "id": "kiosk_page_1",
-    "type": "ui-page",
-    "z": "cc25d96a5ae42c89",
-    "name": "Kiosk",
-    "ui": "ui_base_1",
-    "path": "/kiosk",
-    "layout": "grid",
-    "theme": "skin_theme_light",
-    "breakpoints": [
-      {
-        "name": "Default",
-        "px": 0,
-        "cols": 3
-      },
-      {
-        "name": "Tablet",
-        "px": 576,
-        "cols": 6
-      },
-      {
-        "name": "Desktop",
-        "px": 1024,
-        "cols": 12
-      }
-    ],
-    "order": 2,
-    "className": ""
-  },
-  {
-    "id": "kiosk_grp_1",
-    "type": "ui-group",
-    "z": "cc25d96a5ae42c89",
-    "name": "KIOSK",
-    "page": "kiosk_page_1",
-    "width": 12,
-    "height": 1,
-    "order": 1,
-    "className": "kiosk-hero"
-  },
-  {
-    "id": "kiosk_hero_1",
-    "type": "ui-template",
-    "z": "cc25d96a5ae42c89",
-    "name": "Kiosk Hero",
-    "group": "kiosk_grp_1",
-    "page": "kiosk_page_1",
-    "theme": "skin_theme_light",
-    "templateScope": "local",
-    "ui": "ui_base_1",
-    "order": 1,
-    "width": 12,
-    "height": 5,
-    "passthru": true,
-    "resendOnRefresh": true,
-    "storeOutMessages": false,
-    "className": "kiosk-hero-card",
-    "format": "<template>\n  <div class=\"kiosk-wrap\" :class=\"`is-${tone}`\">\n    <div class=\"kiosk-hint\">TAP CARD TO ENTER</div>\n    <div class=\"kiosk-count\" v-if=\"free !== null\">{{ free }}</div>\n    <div class=\"kiosk-cap\" v-if=\"free !== null\">of {{ total }} available</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { free: null, total: 4, tone: 'ok' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object' && p.free !== undefined) {\n        this.free = p.free;\n        this.total = p.total;\n        this.tone = p.free > 0 ? 'ok' : 'full';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.kiosk-wrap {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: clamp(6px, 1.5vh, 18px);\n  width: 100%;\n  min-height: clamp(220px, 42vh, 420px);\n  text-align: center;\n}\n.kiosk-hint {\n  font-size: clamp(20px, 5vw, 54px);\n  font-weight: 700;\n  letter-spacing: 2px;\n  color: #ffffff;\n  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);\n}\n.kiosk-count {\n  font-size: clamp(80px, 20vw, 210px);\n  font-weight: 800;\n  line-height: 0.95;\n  color: #00e676;\n  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.6);\n}\n.kiosk-wrap.is-full .kiosk-count { color: #ff5252; }\n.kiosk-cap {\n  font-size: clamp(14px, 3vw, 30px);\n  font-weight: 600;\n  color: rgba(255, 255, 255, 0.88);\n  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);\n}\n</style>",
-    "wires": [
-      [],
-      []
-    ],
-    "x": 0,
-    "y": 0
-  },
-  {
-    "id": "fn_kiosk_avail",
-    "type": "function",
-    "z": "cc25d96a5ae42c89",
-    "name": "kiosk availability",
-    "func": "// bikestation/slotN/state -> availability for the user kiosk pane\nlet s = flow.get('slotState') || {};\nlet m = (msg.topic || '').match(/slot(\\d+)/);\nif (m) {\n  s[m[1]] = String(msg.payload).trim().toLowerCase() === 'occupied';\n  flow.set('slotState', s);\n}\nlet free = 0;\nfor (let i = 1; i <= 4; i++) { if (s[i] !== true) free++; }\nreturn { topic: 'kiosk', payload: { free: free, total: 4 } };",
-    "outputs": 1,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 900,
-    "y": 1240,
-    "wires": [
-      [
-        "kiosk_hero_1"
-      ]
-    ]
-  }
 ]
