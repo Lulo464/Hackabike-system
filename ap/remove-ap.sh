@@ -18,6 +18,15 @@ nmcli con down "$CONN" 2>/dev/null || echo "    not active"
 echo "==> delete profile"
 nmcli con delete "$CONN" 2>/dev/null || echo "    no such profile"
 
+# NM's netplan sync can auto-generate a second AP profile
+# (netplan-wlan0-Hackabike-ESP) with shared DHCP and no WPA2 cipher pin.
+# Remove it too so wlan0 doesn't come back up wrong on a later reboot.
+DUP="netplan-wlan0-Hackabike-ESP"
+if nmcli -t -f NAME con show | grep -qx "$DUP"; then
+    echo "==> delete auto-synced duplicate: $DUP"
+    nmcli con delete "$DUP" 2>/dev/null || echo "    could not delete $DUP"
+fi
+
 echo "==> remove $NETPLAN_FILE"
 rm -f "$NETPLAN_FILE"
 netplan generate 2>/dev/null || true

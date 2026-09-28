@@ -59,11 +59,19 @@ done < <(nmcli -t -f NAME,TYPE con show 2>/dev/null \
 
 echo "==> creating AP profile: $SSID (channel $CHANNEL)"
 nmcli con delete "$CONN" 2>/dev/null || true
+# NB: WPA2-AES-ONLY is mandatory. NetworkManager's wpa_supplicant AP mode
+# advertises mixed "WPA1 WPA2" (TKIP + CCMP) by default, and the ESP32's
+# ESP-IDF stack rejects that beacon with reason 201 "No AP found in auth mode
+# threshold". Pinning proto/group/pairwise to rsn/ccmp makes the beacon
+# advertise pure WPA2 (pair_ccmp group_ccmp), which the ESP joins cleanly.
 nmcli con add type wifi ifname wlan0 con-name "$CONN" ssid "$SSID" \
     wifi.mode ap \
     wifi.band bg \
     wifi.channel "$CHANNEL" \
     wifi-sec.key-mgmt wpa-psk \
+    wifi-sec.proto rsn \
+    wifi-sec.group ccmp \
+    wifi-sec.pairwise ccmp \
     wifi-sec.psk "$PSK" \
     ipv4.method manual \
     ipv4.addresses "$AP_IP" \
