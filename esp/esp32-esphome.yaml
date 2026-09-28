@@ -4,21 +4,26 @@ esphome:
   on_boot:
     priority: -100
     then:
-      # Reset beim Boot: alle Slots auf "aus", LEDs löschen
+      # Reset beim Boot: Messung sperren, alle Slots auf "aus", LEDs löschen
       - lambda: |-
+          id(ready) = false;
           for (int i = 0; i < 4; i++) {
             id(slots)[i] = 0;
             id(sensor_state)[i] = -1;
             id(sensor_fails)[i] = 0;
           }
+          id(next_sensor) = 0;
       - light.turn_off:
           id: strip
           transition_length: 0s
-      - delay: 500ms
+      - delay: 2s
       - light.turn_on:
           id: strip
           brightness: 30%
           effect: "Slots"
+      # Erst nach dem Hochfahren (WLAN, MQTT, Strom stabil) wird gemessen
+      - delay: 5s
+      - lambda: 'id(ready) = true;'
 
 esp32:
   board: esp32dev
@@ -51,6 +56,14 @@ globals:
   - id: sensor_fails
     type: int[4]
     initial_value: '{0, 0, 0, 0}'
+  # welcher Sensor als Nächstes misst (0-3)
+  - id: next_sensor
+    type: int
+    initial_value: '0'
+  # Messfreigabe nach dem Boot
+  - id: ready
+    type: bool
+    initial_value: 'false'
 
 mqtt:
   id: mqtt_client
@@ -89,7 +102,7 @@ light:
     pin: GPIO13
     num_leds: 20            # 4 * LEDS_PER_SLOT + 3 * GAP
     chipset: WS2812
-    rgb_order: GRB
+    channel_colors: GRB
     effects:
       - addressable_lambda:
           name: "Slots"
@@ -112,103 +125,90 @@ light:
               for (int j = 0; j < LEDS_PER_SLOT; j++) it[start + j] = c;
             }
 
+# Distanz-Sensoren: Werte kommen aus dem interval-Block unten.
+# retain: false -> der Pi bekommt nach einem Neustart keinen alten Wert.
+# skip_initial verwirft die ersten 2 Messungen, der Median glättet Ausreißer.
 sensor:
-  # Slot 1 -> D18
   - platform: template
+    id: dist1
     name: "Distance Slot 1"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
-    update_interval: 1000ms
+    update_interval: never
     state_topic: bikestation/slot1/distance
-    lambda: |-
-      const int SIG = 18;
-      const int N = 0;
-      pinMode(SIG, OUTPUT);
-      digitalWrite(SIG, LOW);  delayMicroseconds(2);
-      digitalWrite(SIG, HIGH); delayMicroseconds(10);
-      digitalWrite(SIG, LOW);
-      pinMode(SIG, INPUT);
-      unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
-      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
-      if (id(sensor_state)[N] != s) {
-        if (id(mqtt_client)->publish("bikestation/slot1/sensor", s ? "ok" : "no_echo", 0, true))
-          id(sensor_state)[N] = s;
-      }
-      if (us == 0) return 999.0f;
-      return us / 58.0f;
+    retain: false
+    filters:
+      - skip_initial: 2
+      - median: {window_size: 5, send_every: 1, send_first_at: 1}
 
-  # Slot 2 -> D19
   - platform: template
+    id: dist2
     name: "Distance Slot 2"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
-    update_interval: 1100ms
+    update_interval: never
     state_topic: bikestation/slot2/distance
-    lambda: |-
-      const int SIG = 19;
-      const int N = 1;
-      pinMode(SIG, OUTPUT);
-      digitalWrite(SIG, LOW);  delayMicroseconds(2);
-      digitalWrite(SIG, HIGH); delayMicroseconds(10);
-      digitalWrite(SIG, LOW);
-      pinMode(SIG, INPUT);
-      unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
-      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
-      if (id(sensor_state)[N] != s) {
-        if (id(mqtt_client)->publish("bikestation/slot2/sensor", s ? "ok" : "no_echo", 0, true))
-          id(sensor_state)[N] = s;
-      }
-      if (us == 0) return 999.0f;
-      return us / 58.0f;
+    retain: false
+    filters:
+      - skip_initial: 2
+      - median: {window_size: 5, send_every: 1, send_first_at: 1}
 
-  # Slot 3 -> D21
   - platform: template
+    id: dist3
     name: "Distance Slot 3"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
-    update_interval: 1200ms
+    update_interval: never
     state_topic: bikestation/slot3/distance
-    lambda: |-
-      const int SIG = 21;
-      const int N = 2;
-      pinMode(SIG, OUTPUT);
-      digitalWrite(SIG, LOW);  delayMicroseconds(2);
-      digitalWrite(SIG, HIGH); delayMicroseconds(10);
-      digitalWrite(SIG, LOW);
-      pinMode(SIG, INPUT);
-      unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
-      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
-      if (id(sensor_state)[N] != s) {
-        if (id(mqtt_client)->publish("bikestation/slot3/sensor", s ? "ok" : "no_echo", 0, true))
-          id(sensor_state)[N] = s;
-      }
-      if (us == 0) return 999.0f;
-      return us / 58.0f;
+    retain: false
+    filters:
+      - skip_initial: 2
+      - median: {window_size: 5, send_every: 1, send_first_at: 1}
 
-  # Slot 4 -> D22
   - platform: template
+    id: dist4
     name: "Distance Slot 4"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
-    update_interval: 1300ms
+    update_interval: never
     state_topic: bikestation/slot4/distance
-    lambda: |-
-      const int SIG = 22;
-      const int N = 3;
-      pinMode(SIG, OUTPUT);
-      digitalWrite(SIG, LOW);  delayMicroseconds(2);
-      digitalWrite(SIG, HIGH); delayMicroseconds(10);
-      digitalWrite(SIG, LOW);
-      pinMode(SIG, INPUT);
-      unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
-      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
-      if (id(sensor_state)[N] != s) {
-        if (id(mqtt_client)->publish("bikestation/slot4/sensor", s ? "ok" : "no_echo", 0, true))
-          id(sensor_state)[N] = s;
-      }
-      if (us == 0) return 999.0f;
-      return us / 58.0f;
+    retain: false
+    filters:
+      - skip_initial: 2
+      - median: {window_size: 5, send_every: 1, send_first_at: 1}
+
+# Alle 250 ms misst genau ein Sensor (D18, D19, D21, D23), reihum
+interval:
+  - interval: 250ms
+    then:
+      - lambda: |-
+          if (!id(ready)) return;   // nicht messen, solange der Boot läuft
+
+          static const int pins[4] = {18, 19, 21, 23};
+          int n = id(next_sensor);
+          id(next_sensor) = (n + 1) % 4;
+          int sig = pins[n];
+
+          pinMode(sig, OUTPUT);
+          digitalWrite(sig, LOW);  delayMicroseconds(2);
+          digitalWrite(sig, HIGH); delayMicroseconds(10);
+          digitalWrite(sig, LOW);
+          pinMode(sig, INPUT);
+          unsigned long us = pulseIn(sig, HIGH, 30000);
+
+          // Sensorstatus: erst nach 3 Fehlmessungen in Folge "no_echo"
+          if (us == 0) id(sensor_fails)[n]++; else id(sensor_fails)[n] = 0;
+          int s = id(sensor_fails)[n] >= 3 ? 0 : 1;
+          if (id(sensor_state)[n] != s) {
+            char topic[32];
+            snprintf(topic, sizeof(topic), "bikestation/slot%d/sensor", n + 1);
+            if (id(mqtt_client)->publish(topic, s ? "ok" : "no_echo", 0, true))
+              id(sensor_state)[n] = s;
+          }
+
+          // kein Echo -> unplausibler Wert 999
+          float cm = (us == 0) ? 999.0f : us / 58.0f;
+          if (n == 0) id(dist1).publish_state(cm);
+          if (n == 1) id(dist2).publish_state(cm);
+          if (n == 2) id(dist3).publish_state(cm);
+          if (n == 3) id(dist4).publish_state(cm);
