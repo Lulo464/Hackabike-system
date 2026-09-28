@@ -4,9 +4,13 @@ esphome:
   on_boot:
     priority: -100
     then:
-      # Reset beim Boot: alle Slots auf "aus", LEDs loeschen
+      # Reset beim Boot: alle Slots auf "aus", LEDs löschen
       - lambda: |-
-          for (int i = 0; i < 4; i++) id(slots)[i] = 0;
+          for (int i = 0; i < 4; i++) {
+            id(slots)[i] = 0;
+            id(sensor_state)[i] = -1;
+            id(sensor_fails)[i] = 0;
+          }
       - light.turn_off:
           id: strip
           transition_length: 0s
@@ -34,13 +38,22 @@ wifi:
   password: "hackabike2026"
   power_save_mode: none
 
-# 0=aus, 1=free, 2=occupied, 3=reserved, 4=alarm
 globals:
+  # 0=aus, 1=free, 2=occupied, 3=reserved, 4=alarm
   - id: slots
+    type: int[4]
+    initial_value: '{0, 0, 0, 0}'
+  # letzter gemeldeter Sensorstatus: -1=unbekannt, 0=no_echo, 1=ok
+  - id: sensor_state
+    type: int[4]
+    initial_value: '{-1, -1, -1, -1}'
+  # Anzahl aufeinanderfolgender Fehlmessungen
+  - id: sensor_fails
     type: int[4]
     initial_value: '{0, 0, 0, 0}'
 
 mqtt:
+  id: mqtt_client
   broker: 192.168.50.1
   port: 1883
   client_id: bikeslot-test
@@ -109,13 +122,20 @@ sensor:
     state_topic: bikestation/slot1/distance
     lambda: |-
       const int SIG = 18;
+      const int N = 0;
       pinMode(SIG, OUTPUT);
       digitalWrite(SIG, LOW);  delayMicroseconds(2);
       digitalWrite(SIG, HIGH); delayMicroseconds(10);
       digitalWrite(SIG, LOW);
       pinMode(SIG, INPUT);
       unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) return {};
+      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
+      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
+      if (id(sensor_state)[N] != s) {
+        if (id(mqtt_client)->publish("bikestation/slot1/sensor", s ? "ok" : "no_echo", 0, true))
+          id(sensor_state)[N] = s;
+      }
+      if (us == 0) return 999.0f;
       return us / 58.0f;
 
   # Slot 2 -> D19
@@ -127,13 +147,20 @@ sensor:
     state_topic: bikestation/slot2/distance
     lambda: |-
       const int SIG = 19;
+      const int N = 1;
       pinMode(SIG, OUTPUT);
       digitalWrite(SIG, LOW);  delayMicroseconds(2);
       digitalWrite(SIG, HIGH); delayMicroseconds(10);
       digitalWrite(SIG, LOW);
       pinMode(SIG, INPUT);
       unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) return {};
+      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
+      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
+      if (id(sensor_state)[N] != s) {
+        if (id(mqtt_client)->publish("bikestation/slot2/sensor", s ? "ok" : "no_echo", 0, true))
+          id(sensor_state)[N] = s;
+      }
+      if (us == 0) return 999.0f;
       return us / 58.0f;
 
   # Slot 3 -> D21
@@ -145,13 +172,20 @@ sensor:
     state_topic: bikestation/slot3/distance
     lambda: |-
       const int SIG = 21;
+      const int N = 2;
       pinMode(SIG, OUTPUT);
       digitalWrite(SIG, LOW);  delayMicroseconds(2);
       digitalWrite(SIG, HIGH); delayMicroseconds(10);
       digitalWrite(SIG, LOW);
       pinMode(SIG, INPUT);
       unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) return {};
+      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
+      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
+      if (id(sensor_state)[N] != s) {
+        if (id(mqtt_client)->publish("bikestation/slot3/sensor", s ? "ok" : "no_echo", 0, true))
+          id(sensor_state)[N] = s;
+      }
+      if (us == 0) return 999.0f;
       return us / 58.0f;
 
   # Slot 4 -> D22
@@ -163,11 +197,18 @@ sensor:
     state_topic: bikestation/slot4/distance
     lambda: |-
       const int SIG = 22;
+      const int N = 3;
       pinMode(SIG, OUTPUT);
       digitalWrite(SIG, LOW);  delayMicroseconds(2);
       digitalWrite(SIG, HIGH); delayMicroseconds(10);
       digitalWrite(SIG, LOW);
       pinMode(SIG, INPUT);
       unsigned long us = pulseIn(SIG, HIGH, 30000);
-      if (us == 0) return {};
+      if (us == 0) id(sensor_fails)[N]++; else id(sensor_fails)[N] = 0;
+      int s = id(sensor_fails)[N] >= 3 ? 0 : 1;
+      if (id(sensor_state)[N] != s) {
+        if (id(mqtt_client)->publish("bikestation/slot4/sensor", s ? "ok" : "no_echo", 0, true))
+          id(sensor_state)[N] = s;
+      }
+      if (us == 0) return 999.0f;
       return us / 58.0f;
