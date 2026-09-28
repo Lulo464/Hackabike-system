@@ -98,30 +98,33 @@
         "id": "3dfae6a90a7a167f",
         "type": "ui-page",
         "z": "cc25d96a5ae42c89",
-        "name": "EcoHub Central",
+        "name": "Hackabike Central",
         "ui": "ui_base_1",
         "path": "/bikestation",
+        "icon": "",
         "layout": "grid",
         "theme": "skin_theme_light",
         "breakpoints": [
             {
                 "name": "Default",
-                "px": 0,
-                "cols": 3
+                "px": "0",
+                "cols": "3"
             },
             {
                 "name": "Tablet",
-                "px": 576,
-                "cols": 6
+                "px": "576",
+                "cols": "6"
             },
             {
                 "name": "Desktop",
-                "px": 1024,
-                "cols": 12
+                "px": "1024",
+                "cols": "12"
             }
         ],
         "order": 1,
-        "className": ""
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
     },
     {
         "id": "ab14b8c0991b6a02",
@@ -149,11 +152,16 @@
         "id": "ccd65dd0a7a37ba9",
         "type": "ui-group",
         "z": "cc25d96a5ae42c89",
-        "name": "SYSTEM HEALTH & LOGS",
+        "name": "SYSTEM HEALTH",
         "page": "3dfae6a90a7a167f",
         "width": 4,
         "height": 1,
-        "order": 3
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
     },
     {
         "id": "kiosk_page_1",
@@ -669,11 +677,11 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 700,
-        "y": 580,
+        "x": 960,
+        "y": 640,
         "wires": [
             [
-                "fn_smart_logic"
+                "fn_rfid_stamp"
             ]
         ]
     },
@@ -838,7 +846,7 @@
         "page": "",
         "ui": "ui_base_1",
         "name": "Status Bar",
-        "order": 2,
+        "order": 4,
         "width": 0,
         "height": 0,
         "head": "",
@@ -1012,8 +1020,7 @@
             ],
             [],
             []
-        ],
-        "payloadType": "str"
+        ]
     },
     {
         "id": "fn_cpu",
@@ -1133,8 +1140,7 @@
             ],
             [],
             []
-        ],
-        "payloadType": "str"
+        ]
     },
     {
         "id": "fn_ram",
@@ -1274,8 +1280,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1180,
-        "y": 200,
+        "x": 1070,
+        "y": 240,
         "wires": [
             []
         ]
@@ -1322,9 +1328,6 @@
         "wires": [
             [
                 "esp_badge_1"
-            ],
-            [
-                "esp_badge_2"
             ]
         ]
     },
@@ -1333,19 +1336,19 @@
         "type": "ui-template",
         "z": "cc25d96a5ae42c89",
         "group": "ab14b8c0991b6a02",
-        "page": "3dfae6a90a7a167f",
-        "ui": "ui_base_1",
+        "page": "",
+        "ui": "",
         "name": "ESP32-1 status",
-        "order": 1,
-        "width": 5,
-        "height": 1,
+        "order": 3,
+        "width": "2",
+        "height": "2",
         "head": "",
+        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
         "storeOutMessages": false,
         "passthru": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "esp-badge-wrap",
-        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
         "x": 1660,
         "y": 260,
         "wires": [
@@ -1357,21 +1360,93 @@
         "type": "ui-template",
         "z": "cc25d96a5ae42c89",
         "group": "ab14b8c0991b6a02",
-        "page": "3dfae6a90a7a167f",
-        "ui": "ui_base_1",
+        "page": "",
+        "ui": "",
         "name": "ESP32-2 status",
-        "order": 1,
-        "width": 5,
-        "height": 1,
+        "order": 2,
+        "width": "2",
+        "height": "2",
         "head": "",
+        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
         "storeOutMessages": false,
         "passthru": true,
         "resendOnRefresh": true,
         "templateScope": "local",
         "className": "esp-badge-wrap",
-        "format": "<template>\n  <div class=\"esp-badge\" :class=\"ok ? 'ok' : 'bad'\">\n    <span class=\"dot\"></span>\n    <div class=\"meta\">\n      <div class=\"nm\">{{ name }}</div>\n      <div class=\"sl\">{{ slots }}</div>\n    </div>\n    <div class=\"st\">{{ text }}</div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return { name: 'ESP32', slots: '', ok: false, text: 'waiting' };\n  },\n  watch: {\n    'msg.payload': function (p) {\n      if (p && typeof p === 'object') {\n        this.name = p.label || this.name;\n        this.slots = p.slots || '';\n        this.ok = !!p.online;\n        this.text = p.text || '';\n      }\n    }\n  }\n}\n</script>\n\n<style scoped>\n.esp-badge {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  height: 100%;\n  padding: 0 18px;\n  border-radius: 14px;\n  background: rgba(255, 255, 255, 0.10);\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  backdrop-filter: blur(10px);\n  color: #fff;\n  font-family: 'Segoe UI', Roboto, sans-serif;\n}\n.esp-badge .dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex: 0 0 auto;\n}\n.esp-badge.ok .dot { background: #00e676; box-shadow: 0 0 10px #00e676; }\n.esp-badge.bad .dot { background: #ff5252; box-shadow: 0 0 10px #ff5252; }\n.esp-badge .meta { line-height: 1.15; flex: 1 1 auto; min-width: 0; }\n.esp-badge .nm { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }\n.esp-badge .sl { font-size: 10px; opacity: 0.6; letter-spacing: 0.3px; }\n.esp-badge .st {\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  white-space: nowrap;\n}\n.esp-badge.ok .st { color: #00e676; }\n.esp-badge.bad .st { color: #ff5252; }\n</style>",
         "x": 1660,
         "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fn_rfid_stamp",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "rfid tap stamp",
+        "func": "// Input : bikestation/entrance/nfc/tap\n// out0   : the tap unchanged, for the slot-reservation logic\n// out1   : local wall-clock time for the dashboard card\n//\n// Arrival time on the Pi is used rather than any timestamp in the\n// payload: the ESP32 has no RTC, so its clock is only meaningful\n// after an NTP sync and reads 0/epoch before that.\n// hour12:false keeps the 24h format whatever the container locale is.\nconst stamp = new Date().toLocaleTimeString([], {\n    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false\n});\nreturn [msg, { topic: 'rfid/last-tap', payload: stamp }];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 460,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ],
+            [
+                "ui_rfid_tap"
+            ]
+        ]
+    },
+    {
+        "id": "inj_rfid_reset",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "rfid placeholder",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "3",
+        "topic": "",
+        "payload": "\u2014",
+        "payloadType": "str",
+        "x": 1500,
+        "y": 500,
+        "wires": [
+            [
+                "ui_rfid_tap"
+            ]
+        ]
+    },
+    {
+        "id": "ui_rfid_tap",
+        "type": "ui-text",
+        "z": "cc25d96a5ae42c89",
+        "group": "ab14b8c0991b6a02",
+        "page": "3dfae6a90a7a167f",
+        "ui": "ui_base_1",
+        "name": "LAST RFID TAP",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "wrapText": false,
+        "className": "",
+        "style": false,
+        "label": true,
+        "format": "{{value}}",
+        "valueType": "msg",
+        "value": "payload",
+        "x": 830,
+        "y": 140,
         "wires": [
             []
         ]
