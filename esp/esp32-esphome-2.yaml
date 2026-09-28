@@ -1,29 +1,19 @@
-# ESP 1 (ESP32 DevKit): WS2812B-Strip fuer alle 4 Slots + Ultrasonic Slot 1/2 + MQTT
-# Slot 3/4 misst ESP 2 (esp32-esphome-2.yaml). D21/D23 sind frei (z. B. RFID).
+# ESP 2 (ESP32 DevKit): Ultrasonic Slot 3/4 + MQTT (kein LED-Strip, den steuert ESP 1)
 esphome:
-  name: bikeslot-test
+  name: bikeslot-2
   on_boot:
     priority: -100
     then:
-      # Reset beim Boot: Messung sperren, alle Slots auf "aus", LEDs löschen
+      # Reset beim Boot: Messung sperren
       - lambda: |-
           id(ready) = false;
-          for (int i = 0; i < 4; i++) id(slots)[i] = 0;
           for (int i = 0; i < 2; i++) {
             id(sensor_state)[i] = -1;
             id(sensor_fails)[i] = 0;
           }
           id(next_sensor) = 0;
-      - light.turn_off:
-          id: strip
-          transition_length: 0s
-      - delay: 2s
-      - light.turn_on:
-          id: strip
-          brightness: 30%
-          effect: "Slots"
       # Erst nach dem Hochfahren (WLAN, MQTT, Strom stabil) wird gemessen
-      - delay: 5s
+      - delay: 7s
       - lambda: 'id(ready) = true;'
 
 esp32:
@@ -47,15 +37,11 @@ wifi:
   power_save_mode: none
 
 globals:
-  # LED-Zustand aller 4 Slots: 0=aus, 1=free, 2=occupied, 3=reserved, 4=alarm
-  - id: slots
-    type: int[4]
-    initial_value: '{0, 0, 0, 0}'
-  # letzter gemeldeter Sensorstatus (Slot 1/2): -1=unbekannt, 0=no_echo, 1=ok
+  # letzter gemeldeter Sensorstatus (Slot 3/4): -1=unbekannt, 0=no_echo, 1=ok
   - id: sensor_state
     type: int[2]
     initial_value: '{-1, -1}'
-  # Anzahl aufeinanderfolgender Fehlmessungen (Slot 1/2)
+  # Anzahl aufeinanderfolgender Fehlmessungen (Slot 3/4)
   - id: sensor_fails
     type: int[2]
     initial_value: '{0, 0}'
@@ -72,85 +58,38 @@ mqtt:
   id: mqtt_client
   broker: 192.168.50.1
   port: 1883
-  client_id: bikeslot-test
+  client_id: bikeslot-2
   discovery: false
   birth_message:
-    topic: bikestation/bikeslot-test/status
+    topic: bikestation/bikeslot-2/status
     payload: online
   will_message:
-    topic: bikestation/bikeslot-test/status
+    topic: bikestation/bikeslot-2/status
     payload: offline
-  on_message:
-    - topic: bikestation/slot1/state
-      then:
-        - lambda: |-
-            id(slots)[0] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
-    - topic: bikestation/slot2/state
-      then:
-        - lambda: |-
-            id(slots)[1] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
-    - topic: bikestation/slot3/state
-      then:
-        - lambda: |-
-            id(slots)[2] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
-    - topic: bikestation/slot4/state
-      then:
-        - lambda: |-
-            id(slots)[3] = x == "free" ? 1 : x == "occupied" ? 2 : x == "reserved" ? 3 : x == "alarm" ? 4 : 0;
-
-light:
-  - platform: esp32_rmt_led_strip
-    id: strip
-    name: "Strip"
-    pin: GPIO13
-    num_leds: 20            # 4 * LEDS_PER_SLOT + 3 * GAP
-    chipset: WS2812
-    channel_colors: GRB
-    effects:
-      - addressable_lambda:
-          name: "Slots"
-          update_interval: 100ms
-          lambda: |-
-            const int LEDS_PER_SLOT = 2;
-            const int GAP = 4;
-            bool slow = (millis() / 500) % 2;
-            bool fast = (millis() / 150) % 2;
-            it.all() = Color::BLACK;
-            for (int i = 0; i < 4; i++) {
-              Color c = Color::BLACK;
-              switch (id(slots)[i]) {
-                case 1: c = Color(0, 255, 0); break;
-                case 2: c = Color(255, 0, 0); break;
-                case 3: c = slow ? Color(0, 0, 255) : Color::BLACK; break;
-                case 4: c = fast ? Color(255, 0, 0) : Color::BLACK; break;
-              }
-              int start = i * (LEDS_PER_SLOT + GAP);
-              for (int j = 0; j < LEDS_PER_SLOT; j++) it[start + j] = c;
-            }
 
 # Distanz-Sensoren: Werte kommen aus dem interval-Block unten.
 # retain: false -> der Pi bekommt nach einem Neustart keinen alten Wert.
 # skip_initial verwirft die ersten 2 Messungen, der Median glättet Ausreißer.
 sensor:
   - platform: template
-    id: dist1
-    name: "Distance Slot 1"
+    id: dist3
+    name: "Distance Slot 3"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
     update_interval: never
-    state_topic: bikestation/slot1/distance
+    state_topic: bikestation/slot3/distance
     retain: false
     filters:
       - skip_initial: 2
       - median: {window_size: 5, send_every: 1, send_first_at: 1}
 
   - platform: template
-    id: dist2
-    name: "Distance Slot 2"
+    id: dist4
+    name: "Distance Slot 4"
     unit_of_measurement: "cm"
     accuracy_decimals: 1
     update_interval: never
-    state_topic: bikestation/slot2/distance
+    state_topic: bikestation/slot4/distance
     retain: false
     filters:
       - skip_initial: 2
@@ -164,7 +103,7 @@ interval:
           if (!id(ready)) return;   // nicht messen, solange der Boot läuft
 
           static const int pins[2] = {18, 19};
-          static const int slot_base = 1;   // pins[0] -> slot1
+          static const int slot_base = 3;   // pins[0] -> slot3
           int n = id(next_sensor);
           id(next_sensor) = (n + 1) % 2;
           int sig = pins[n];
@@ -188,5 +127,5 @@ interval:
 
           // kein Echo -> unplausibler Wert 999
           float cm = (us == 0) ? 999.0f : us / 58.0f;
-          if (n == 0) id(dist1).publish_state(cm);
-          if (n == 1) id(dist2).publish_state(cm);
+          if (n == 0) id(dist3).publish_state(cm);
+          if (n == 1) id(dist4).publish_state(cm);

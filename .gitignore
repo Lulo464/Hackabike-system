@@ -25,3 +25,7 @@ Thumbs.db
 .vscode/
 __pycache__/
 *.pyc
+
+# esphome build output
+.esphome/
+**/.esphome/
