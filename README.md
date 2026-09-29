@@ -107,6 +107,31 @@ single controller, Pi as server:
 | ADXL345 accelerometer   | I²C  | `0x53`  |
 | WS2812B strip (60 LEDs) | GPIO 8 | —     |
 
+## Station logic (Node-RED)
+
+Chip and app taps take the same path through the flow:
+
+1. `tap -> lookup params` / `who tapped?` looks the uid up in Postgres
+   (`app_users.rfid_uid`, or `APP-<username>` for the app). If an account is
+   waiting to link a chip (`pair_until`), the chip is linked instead and the
+   tap does nothing else.
+2. `Station logic` decides: a known chip with a parked bike means **pickup**,
+   otherwise **park** (the app says which). Park reserves the first free slot
+   for **5 minutes**; several reservations can exist at once.
+3. LCD (16x2, ASCII only): `Hallo <Name> / Willkommen!` -> after 2 s
+   `Park at Slot N / Gate ist offen` (or `Rad in Slot N / Gute Fahrt!`,
+   `Station Full!`) -> after 10 s more `Willkommen! / Bitte scannen`.
+4. The gate opens and closes again after 8 s.
+5. Every reservation is a row in `parking_sessions`:
+   `reserved -> parked` (bike arrives) `-> done` (bike leaves), or
+   `reserved -> expired`. A slot only counts as changed after 5 equal readings
+   (~1 s), so sensor flicker does not end a session.
+
+The Postgres ingest (`bikestation/#`) uses its **own MQTT connection**
+(`bikestation-broker (db ingest)`): on the shared connection the broker
+delivered every message once per matching subscription, so taps arrived
+twice.
+
 ## Remote access
 
 The Pi is reachable from outside the LAN in two ways. Neither is configured
@@ -170,9 +195,6 @@ This is a demo configuration. Before any real deployment:
 
 ## Known issues
 
-- **Chip taps do not open the gate.** Node-RED reserves a slot and shows it on
-  the LCD, but nothing publishes to `bikestation/entrance/gate`. Only the
-  mobile dashboard opens it (`open`, then `close` after 8 s).
 
 **Hardware is unsettled.** `docs/Design_v2.svg` and the current documentation
 disagree:

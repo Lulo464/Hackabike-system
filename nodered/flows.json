@@ -689,9 +689,9 @@
         "id": "fn_smart_logic",
         "type": "function",
         "z": "cc25d96a5ae42c89",
-        "name": "Assign Slot & Publish State",
-        "func": "// Input: bikestation/slotN/state OR bikestation/entrance/nfc/tap\n// Output1: LCD (bikestation/entrance/oled/display), Output2: slot state publish\nlet slotState = flow.get('slotState') || {1: false, 2: false, 3: false, 4: false};\nlet reservedSlot = flow.get('reservedSlot') || null;\n\nlet outLCD = null;\nlet outState = null;\n\nif (msg.topic.startsWith('bikestation/slot')) {\n    let slot = msg.topic.split('/')[1].replace('slot', '');\n    let st = String(msg.payload).trim().toLowerCase();\n    let occupied = st === 'occupied';\n    slotState[slot] = occupied;\n    flow.set('slotState', slotState);\n    if (occupied && reservedSlot == slot) {\n        flow.set('reservedSlot', null);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Secured in Slot ' + slot + '!' };\n    }\n}\nelse if (msg.topic.includes('tap') || msg.topic.includes('nfc')) {\n    let targetSlot = null;\n    for (let i = 1; i <= 4; i++) {\n        if (!slotState[i]) { targetSlot = i; break; }\n    }\n    if (targetSlot) {\n        flow.set('reservedSlot', targetSlot);\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Park at Slot ' + targetSlot };\n        outState = { topic: 'bikestation/slot' + targetSlot + '/state', payload: 'reserved', retain: true };\n    } else {\n        outLCD = { topic: 'bikestation/entrance/oled/display', payload: 'Station Full!' };\n    }\n}\n\nreturn [outLCD, outState];",
-        "outputs": 2,
+        "name": "Station logic (reserve, LCD, gate, sessions)",
+        "func": "// Station logic: reservations, parking sessions, LCD and gate.\n// Inputs\n//   bikestation/slotN/state  ~5 Hz from the occupancy functions\n//   a tap after the db lookup: msg.tap, msg.payload = [{user_id, display_name, paired, parked_slot}]\n//                              (msg.error set and no rows when the lookup failed)\n//   station/tick             every 10 s, expires reservations when no sensor reports\n// Outputs: 1 LCD steps, 2 slot state, 3 gate, 4 session sql\nconst SLOTS = 4;\nconst RESERVE_MS = 5 * 60 * 1000;\nconst STABLE = 5;          // equal readings (~1 s) before a slot counts as changed\n\nconst occ = flow.get('occupiedStable') || {};      // slot -> true/false, debounced\nconst res = flow.get('reservations') || {};        // slot -> {uid, userId, name, at}\nconst seen = context.get('seen') || {};            // slot -> {cand, n}\n\nconst lcdOut = [], stateOut = [], gateOut = [], sqlOut = [];\nconst sql = (query, params) => sqlOut.push({ query: query, params: params });\nconst lcd = (steps) => { lcdOut.length = 0; lcdOut.push({ steps: steps }); };\nconst IDLE = { l1: 'Willkommen!', l2: 'Bitte scannen' };\nconst later = (step, at) => Object.assign({}, step, { at: at });\n\n// the LCD only has ASCII\nfunction ascii(s) {\n    return String(s || '')\n        .replace(/\u00e4/g, 'ae').replace(/\u00f6/g, 'oe').replace(/\u00fc/g, 'ue')\n        .replace(/\u00c4/g, 'Ae').replace(/\u00d6/g, 'Oe').replace(/\u00dc/g, 'Ue').replace(/\u00df/g, 'ss')\n        .replace(/[^\\x20-\\x7e]/g, '').trim();\n}\nconst hello = (name) => name ? { l1: 'Hallo ' + name.slice(0, 9), l2: 'Willkommen!' } : { l1: 'Hallo!', l2: 'Willkommen!' };\nconst stateOf = (slot) => occ[slot] ? 'occupied' : (res[slot] ? 'reserved' : 'free');\nconst publishState = (slot) => stateOut.push({ topic: 'bikestation/slot' + slot + '/state', payload: stateOf(slot), retain: true });\n\nfunction expireOld() {\n    const now = Date.now();\n    for (const k of Object.keys(res)) {\n        if (now - res[k].at > RESERVE_MS) {\n            delete res[k];\n            sql(\"UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $1 AND status = 'reserved'\", [Number(k)]);\n            publishState(k);\n        }\n    }\n}\n\nif (msg.topic === 'station/tick') {\n    expireOld();\n}\nelse if (msg.topic && msg.topic.startsWith('bikestation/slot')) {\n    const slot = Number(msg.topic.split('/')[1].replace('slot', ''));\n    const isOcc = String(msg.payload).trim().toLowerCase() === 'occupied';\n    const s = seen[slot] || { cand: null, n: 0 };\n    if (s.cand === isOcc) s.n++; else { s.cand = isOcc; s.n = 1; }\n    seen[slot] = s;\n\n    if (s.n >= STABLE && occ[slot] !== isOcc) {\n        const before = occ[slot];\n        occ[slot] = isOcc;\n        if (isOcc && res[slot]) {\n            // the reserved bike has arrived\n            const r = res[slot];\n            delete res[slot];\n            sql(\"UPDATE parking_sessions SET status = 'parked', parked_at = now() WHERE slot = $1 AND status = 'reserved'\", [slot]);\n            lcd([{ l1: 'Secured: Slot ' + slot, l2: r.name ? 'Danke ' + r.name.slice(0, 10) : 'Danke!', at: 0 }, later(IDLE, 10000)]);\n        } else if (!isOcc && before === true) {\n            // a bike has left\n            sql(\"UPDATE parking_sessions SET status = 'done', ended_at = now() WHERE slot = $1 AND status = 'parked'\", [slot]);\n        }\n    }\n    expireOld();\n}\nelse if (msg.tap) {\n    const t = msg.tap;\n    const row = Array.isArray(msg.payload) && msg.payload[0] ? msg.payload[0] : {};\n    const name = ascii(row.display_name);\n\n    if (row.paired) {\n        lcd([{ l1: 'Chip verknuepft', l2: name ? 'Hallo ' + name.slice(0, 10) : '', at: 0 }, later(IDLE, 10000)]);\n    } else {\n        const mine = Object.keys(res).find((k) => res[k].uid === t.uid || (row.user_id && res[k].userId === row.user_id));\n        const action = t.action || (row.parked_slot ? 'pickup' : 'park');\n\n        if (action === 'pickup') {\n            lcd([later(hello(name), 0),\n                 { l1: row.parked_slot ? 'Rad in Slot ' + row.parked_slot : 'Gate ist offen', l2: 'Gute Fahrt!', at: 2000 },\n                 later(IDLE, 12000)]);\n            gateOut.push({ payload: 'open' });\n        } else if (mine) {\n            // already has a reservation: show it again and give it a fresh 5 min\n            res[mine].at = Date.now();\n            sql(\"UPDATE parking_sessions SET expires_at = now() + make_interval(secs => $2) WHERE slot = $1 AND status = 'reserved'\", [Number(mine), RESERVE_MS / 1000]);\n            lcd([later(hello(name), 0), { l1: 'Park at Slot ' + mine, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n            gateOut.push({ payload: 'open' });\n        } else {\n            let free = null;\n            for (let i = 1; i <= SLOTS; i++) { if (!occ[i] && !res[i]) { free = i; break; } }\n            if (!free) {\n                lcd([later(hello(name), 0), { l1: 'Station Full!', l2: 'Kein Platz frei', at: 2000 }, later(IDLE, 12000)]);\n            } else {\n                res[free] = { uid: t.uid, userId: row.user_id || null, name: name, at: Date.now() };\n                publishState(free);\n                sql(\"WITH stale AS (UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $3 AND status = 'reserved') \" +\n                    \"INSERT INTO parking_sessions (uid, user_id, slot, status, reserved_at, expires_at) \" +\n                    \"VALUES ($1, $2, $3, 'reserved', now(), now() + make_interval(secs => $4))\",\n                    [t.uid, row.user_id || null, free, RESERVE_MS / 1000]);\n                lcd([later(hello(name), 0), { l1: 'Park at Slot ' + free, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n                gateOut.push({ payload: 'open' });\n            }\n        }\n    }\n}\n\nflow.set('occupiedStable', occ);\nflow.set('reservations', res);\ncontext.set('seen', seen);\nreturn [lcdOut, stateOut, gateOut, sqlOut];",
+        "outputs": 4,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
@@ -701,10 +701,16 @@
         "y": 560,
         "wires": [
             [
-                "out_lcd_screen"
+                "fn_lcd_seq"
             ],
             [
                 "out_slot_state"
+            ],
+            [
+                "fn_gate_seq"
+            ],
+            [
+                "pg_sessions"
             ]
         ]
     },
@@ -885,7 +891,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 1",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// fn_smart_logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '1';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservedSlot = flow.get('reservedSlot');\nmsg.payload = occupied ? 'occupied'\n           : (String(reservedSlot) === SLOT ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '1';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -908,7 +914,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 2",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// fn_smart_logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '2';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservedSlot = flow.get('reservedSlot');\nmsg.payload = occupied ? 'occupied'\n           : (String(reservedSlot) === SLOT ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '2';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -931,7 +937,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 3",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// fn_smart_logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '3';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservedSlot = flow.get('reservedSlot');\nmsg.payload = occupied ? 'occupied'\n           : (String(reservedSlot) === SLOT ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '3';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -954,7 +960,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 4",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// fn_smart_logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '4';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservedSlot = flow.get('reservedSlot');\nmsg.payload = occupied ? 'occupied'\n           : (String(reservedSlot) === SLOT ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
+        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '4';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
         "outputs": 2,
         "timeout": "",
         "noerr": 0,
@@ -1398,7 +1404,7 @@
         "y": 480,
         "wires": [
             [
-                "fn_smart_logic"
+                "fn_tap_prepare"
             ],
             [
                 "ui_rfid_tap"
@@ -1487,7 +1493,7 @@
         "topic": "bikestation/#",
         "qos": "0",
         "datatype": "utf8",
-        "broker": "broker_local",
+        "broker": "broker_ingest",
         "nl": false,
         "rap": true,
         "rh": 0,
@@ -1535,5 +1541,211 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "fn_tap_prepare",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "tap -> lookup params",
+        "func": "// tap (chip or app) -> params for the db lookup of who it is.\n// App taps carry {\"uid\":\"APP-<user>\",\"action\":\"park\"|\"pickup\"}.\nlet p = msg.payload;\nif (typeof p === 'string') {\n    try { p = JSON.parse(p); } catch (e) { p = { uid: p }; }\n}\nconst uid = String((p && p.uid) || '').trim();\nif (!uid) return null;\nmsg.tap = {\n    uid: uid,\n    action: p.action === 'park' || p.action === 'pickup' ? p.action : null,\n    source: p.source || 'chip',\n};\nmsg.params = [uid];\ndelete msg.query;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 1380,
+        "wires": [
+            [
+                "pg_tap_lookup"
+            ]
+        ]
+    },
+    {
+        "id": "pg_tap_lookup",
+        "type": "postgresql",
+        "z": "cc25d96a5ae42c89",
+        "name": "who tapped? (+ chip pairing)",
+        "query": "-- who tapped? Links the chip to an account that is waiting for one\n-- (pair_until in the future), otherwise finds the owner by chip uid or\n-- APP-<username>. Always returns exactly one row.\nWITH paired AS (\n  UPDATE app_users SET rfid_uid = $1, pair_until = NULL\n  WHERE id = (SELECT id FROM app_users WHERE pair_until > now() ORDER BY pair_until DESC LIMIT 1)\n    AND $1 NOT LIKE 'APP-%'\n    AND NOT EXISTS (SELECT 1 FROM app_users WHERE rfid_uid = $1)\n  RETURNING id, display_name, true AS paired\n), known AS (\n  SELECT id, display_name, false AS paired FROM app_users\n  WHERE rfid_uid = $1 OR 'APP-' || username = $1\n), who AS (\n  SELECT * FROM paired UNION ALL SELECT * FROM known LIMIT 1\n)\nSELECT w.id AS user_id, w.display_name, coalesce(w.paired, false) AS paired,\n       (SELECT s.slot FROM parking_sessions s\n         WHERE s.status = 'parked' AND (s.uid = $1 OR s.user_id = w.id)\n         ORDER BY s.parked_at DESC LIMIT 1) AS parked_slot\nFROM (SELECT 1) AS one LEFT JOIN who w ON true;",
+        "postgreSQLConfig": "pg_config",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 470,
+        "y": 1380,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ]
+        ]
+    },
+    {
+        "id": "catch_tap_lookup",
+        "type": "catch",
+        "z": "cc25d96a5ae42c89",
+        "name": "lookup failed -> unknown chip",
+        "scope": [
+            "pg_tap_lookup"
+        ],
+        "uncaught": false,
+        "x": 260,
+        "y": 1430,
+        "wires": [
+            [
+                "fn_lookup_failed"
+            ]
+        ]
+    },
+    {
+        "id": "fn_lookup_failed",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "as unknown chip",
+        "func": "msg.payload = [];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 1430,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ]
+        ]
+    },
+    {
+        "id": "inj_station_tick",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "tick 10 s",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "5",
+        "topic": "station/tick",
+        "x": 230,
+        "y": 1480,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ]
+        ]
+    },
+    {
+        "id": "fn_lcd_seq",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "LCD sequence",
+        "func": "// msg.steps = [{l1, l2, at}] -> shows each step at its offset (ms) and\n// cancels a sequence that was still running.\n// The ESP wraps at the last space within the first 16 characters, so line 1\n// is cut to 15 characters and padded to 16: line 2 then starts on row 2.\nconst pad = (s) => (String(s || '').slice(0, 15) + ' '.repeat(16)).slice(0, 16);\n(context.get('timers') || []).forEach(clearTimeout);\nconst timers = [];\nfor (const s of msg.steps || []) {\n    const text = s.l2 ? pad(s.l1) + String(s.l2).slice(0, 16) : String(s.l1 || '').slice(0, 16);\n    const out = { topic: 'bikestation/entrance/oled/display', payload: text };\n    if (!s.at) node.send(out);\n    else timers.push(setTimeout(() => node.send(out), s.at));\n}\ncontext.set('timers', timers);\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1530,
+        "wires": [
+            [
+                "out_lcd_screen"
+            ]
+        ]
+    },
+    {
+        "id": "inj_lcd_idle",
+        "type": "inject",
+        "z": "cc25d96a5ae42c89",
+        "name": "LCD idle on start",
+        "props": [
+            {
+                "p": "steps",
+                "v": "[{\"l1\":\"Willkommen!\",\"l2\":\"Bitte scannen\"}]",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "3",
+        "topic": "",
+        "x": 240,
+        "y": 1530,
+        "wires": [
+            [
+                "fn_lcd_seq"
+            ]
+        ]
+    },
+    {
+        "id": "fn_gate_seq",
+        "type": "function",
+        "z": "cc25d96a5ae42c89",
+        "name": "gate open -> close after 8 s",
+        "func": "// 'open' -> open the gate and close it again after OPEN_MS. Another open\n// while it is up restarts the timer instead of closing early.\nconst OPEN_MS = 8000;\nclearTimeout(context.get('closeTimer'));\nnode.send({ topic: 'bikestation/entrance/gate', payload: 'open' });\ncontext.set('closeTimer', setTimeout(() => {\n    node.send({ topic: 'bikestation/entrance/gate', payload: 'close' });\n}, OPEN_MS));\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 1580,
+        "wires": [
+            [
+                "out_gate"
+            ]
+        ]
+    },
+    {
+        "id": "out_gate",
+        "type": "mqtt out",
+        "z": "cc25d96a5ae42c89",
+        "name": "Gate",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker_local",
+        "x": 700,
+        "y": 1580,
+        "wires": []
+    },
+    {
+        "id": "pg_sessions",
+        "type": "postgresql",
+        "z": "cc25d96a5ae42c89",
+        "name": "parking sessions (msg.query)",
+        "query": "-- statements arrive in msg.query from the station logic",
+        "postgreSQLConfig": "pg_config",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 500,
+        "y": 1630,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "broker_ingest",
+        "type": "mqtt-broker",
+        "name": "bikestation-broker (db ingest)",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "nodered-bikestation-ingest"
     }
 ]

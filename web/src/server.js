@@ -5,6 +5,7 @@ const auth = require('./auth');
 const live = require('./live');
 const forecast = require('./forecast');
 const gate = require('./gate');
+const mybike = require('./mybike');
 const maintenance = require('./maintenance');
 const { seedIfEmpty } = require('./seed');
 
@@ -67,6 +68,12 @@ app.get('/api/me', (req, res) => res.json({ user: req.user ? auth.publicUser(req
 app.post('/api/register', auth.rateLimit, auth.register);
 app.post('/api/login', auth.rateLimit, auth.login);
 app.post('/api/logout', auth.logout);
+
+app.get('/api/me/bike', auth.requireUser, mybike.getBike);
+app.get('/api/me/chip', auth.requireUser, mybike.getChip);
+app.post('/api/me/chip/pair', auth.requireUser, mybike.startPairing);
+app.post('/api/me/chip/cancel', auth.requireUser, mybike.cancelPairing);
+app.post('/api/me/chip/unlink', auth.requireUser, mybike.unlinkChip);
 
 app.post('/api/gate', auth.requireUser, async (req, res) => {
   const r = await gate.open(req.user, req.body?.action);

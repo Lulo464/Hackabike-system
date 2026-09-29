@@ -10,6 +10,9 @@ const state = {
   prevSlots: {}, seenActivity: new Set(),
   conn: 'connecting',   // connecting | live | lost
   gate: null,           // { res, phase: opening | open | closing }
+  bike: null,           // /api/me/bike
+  chip: null,           // /api/me/chip
+  clockOffset: 0,       // server time - local time
 };
 
 // ---- helpers -------------------------------------------------------------
@@ -149,6 +152,15 @@ function renderSlots(l, rebuild = false) {
     el.querySelector('.slot-meta').textContent = !s.since ? t('slot.nodata')
       : s.fresh ? `${dist}${t('slots.live')}` : t('slot.asof', { ago: ago(s.since) });
     state.prevSlots[s.slot] = st;
+
+    const cur = state.user && state.bike && state.bike.current;
+    const mine = cur && cur.slot === s.slot ? cur.status : null;
+    el.classList.toggle('mine', Boolean(mine));
+    let badge = el.querySelector('.mine-badge');
+    if (mine) {
+      if (!badge) { badge = document.createElement('span'); badge.className = 'mine-badge'; el.appendChild(badge); }
+      badge.textContent = t(mine === 'parked' ? 'bike.yours' : 'bike.forYou');
+    } else if (badge) badge.remove();
   }
   $('slotsAge').textContent = t(l.fresh ? 'slots.live' : 'slots.offline');
 }
@@ -310,6 +322,8 @@ setInterval(() => {
   document.querySelectorAll('.act-time[data-ts]').forEach((el) => { el.textContent = ago(el.dataset.ts); });
   renderHero(state.live);
   renderSlots(state.live);
+  if (state.bike) renderBike(false);
+  if (state.chip && state.chip.pairingUntil && !state.chip.linked) renderChip();
 }, 1000);
 
 // ---- account -----------------------------------------------------------------
@@ -322,6 +336,16 @@ function setUser(user) {
   $('accessUser').hidden = !user;
   $('accountLabel').textContent = user ? user.displayName : t('account.login');
   if (user) $('userName').textContent = user.displayName;
+  const was = setUser.current;
+  setUser.current = user ? user.username : null;
+  if (setUser.current === was) return;
+  clearInterval(bikeTimer); stopPairPoll();
+  state.bike = null; state.chip = null;
+  if (user) {
+    refreshBike(); refreshChip();
+    bikeTimer = setInterval(refreshBike, 5000);
+  }
+  if (state.live) renderSlots(state.live);
 }
 
 function renderAuthTexts() {
@@ -373,6 +397,139 @@ $('logoutBtn').addEventListener('click', async () => {
   toast(t('toast.bye'));
 });
 
+// ---- my bike ----------------------------------------------------------------
+const serverNow = () => Date.now() + state.clockOffset;
+function fmtDur(ms) {
+  const sec = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60);
+  if (h) return t('dur.hm', { h, m });
+  if (m) return t('dur.m', { m });
+  return t('dur.s', { s: sec });
+}
+function fmtClock(ms) {
+  const sec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const ss = sec % 60;
+  const two = (x) => String(x).padStart(2, '0');
+  return h ? `${h}:${two(m)}:${two(ss)}` : `${m}:${two(ss)}`;
+}
+
+let bikeTimer = null;
+async function refreshBike() {
+  if (!state.user) return;
+  try {
+    const b = await api('/api/me/bike');
+    state.clockOffset = new Date(b.now).getTime() - Date.now();
+    const before = state.bike && state.bike.current;
+    const after = b.current;
+    // tell the user what just happened
+    if (before && before.status === 'reserved' && after && after.status === 'parked') toast(t('bike.parkedToast', { n: after.slot }));
+    else if (before && before.status === 'reserved' && !after) toast(t('bike.expiredToast'));
+    else if (before && before.status === 'parked' && !after && b.last) toast(t('bike.doneToast', { dur: fmtDur(new Date(b.last.endedAt) - new Date(b.last.parkedAt)) }));
+    const changed = (before && before.status + before.slot) !== (after && after.status + after.slot);
+    state.bike = b;
+    renderBike(changed);
+    if (state.live) renderSlots(state.live);
+  } catch (err) {
+    if (err.status === 401) setUser(null);
+  }
+}
+
+function renderBike(animate) {
+  const el = $('myBike');
+  const b = state.bike;
+  if (!b) return;
+  const cur = b.current;
+  const st = cur ? cur.status : 'none';
+  el.dataset.state = st;
+  $('myBikeIcon').innerHTML = `<use href="#i-${st === 'reserved' ? 'clock' : 'bike'}"/>`;
+  $('myBikeBar').hidden = st !== 'reserved';
+  el.classList.remove('urgent');
+  if (st === 'parked') {
+    $('myBikeTitle').textContent = t('bike.parked', { n: cur.slot });
+    $('myBikeSub').textContent = t('bike.parkedSince', { time: fmtTime(cur.parkedAt) });
+    $('myBikeTimer').textContent = fmtClock(serverNow() - new Date(cur.parkedAt));
+  } else if (st === 'reserved') {
+    const left = new Date(cur.expiresAt) - serverNow();
+    const total = new Date(cur.expiresAt) - new Date(cur.reservedAt);
+    $('myBikeTitle').textContent = t('bike.reserved', { n: cur.slot });
+    $('myBikeSub').textContent = t('bike.reservedSub');
+    $('myBikeTimer').textContent = fmtClock(left);
+    $('myBikeBarFill').style.transform = `scaleX(${Math.max(0, Math.min(1, left / total))})`;
+    el.classList.toggle('urgent', left < 60000);
+    if (left <= 0) refreshBike();
+  } else {
+    $('myBikeTitle').textContent = t('bike.none');
+    $('myBikeSub').textContent = b.last
+      ? t('bike.last', { dur: fmtDur(new Date(b.last.endedAt) - new Date(b.last.parkedAt)), n: b.last.slot })
+      : t('bike.noneSub');
+    $('myBikeTimer').textContent = '';
+  }
+  if (animate) { el.classList.remove('changed'); void el.offsetWidth; el.classList.add('changed'); }
+}
+
+// ---- chip link -----------------------------------------------------------------
+let pairPoll = null;
+async function refreshChip() {
+  if (!state.user) return;
+  try { state.chip = await api('/api/me/chip'); renderChip(); } catch { /* keep last state */ }
+}
+
+function renderChip() {
+  const c = state.chip;
+  if (!c) return;
+  const row = $('chipRow');
+  row.classList.toggle('linked', c.linked);
+  $('chipTitle').textContent = t(c.linked ? 'chip.linked' : 'chip.none');
+  $('chipSub').textContent = c.linked ? t('chip.linkedSub', { uid: c.uidTail }) : t('chip.noneSub');
+  $('chipAction').textContent = t(c.linked ? 'chip.unlink' : 'chip.link');
+  const pairing = Boolean(c.pairingUntil) && !c.linked;
+  $('pairing').hidden = !pairing && !$('pairing').classList.contains('success');
+  row.hidden = pairing;
+  if (pairing) $('pairCount').textContent = t('chip.pairLeft', { s: Math.max(0, Math.ceil((new Date(c.pairingUntil) - serverNow()) / 1000)) });
+}
+
+function stopPairPoll() { clearInterval(pairPoll); pairPoll = null; }
+
+async function startPairing() {
+  try {
+    state.chip = await api('/api/me/chip/pair', {});
+    renderChip();
+    stopPairPoll();
+    pairPoll = setInterval(async () => {
+      const before = state.chip;
+      await refreshChip();
+      const c = state.chip;
+      if (c.linked) {
+        stopPairPoll();
+        const p = $('pairing');
+        p.classList.add('success'); p.hidden = false; $('chipRow').hidden = true;
+        $('pairCount').textContent = t('chip.success');
+        if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
+        toast(t('chip.success'));
+        setTimeout(() => { p.classList.remove('success'); renderChip(); }, 2200);
+      } else if (!c.pairingUntil && before && before.pairingUntil) {
+        stopPairPoll();
+        toast(t('chip.timeout'));
+      }
+    }, 1500);
+  } catch (err) { toast(errText(err)); }
+}
+
+$('chipAction').addEventListener('click', async () => {
+  if (!state.chip) return;
+  if (state.chip.linked) {
+    if (!confirm(t('chip.unlinkConfirm'))) return;
+    try { state.chip = await api('/api/me/chip/unlink', {}); renderChip(); } catch (err) { toast(errText(err)); }
+  } else {
+    startPairing();
+  }
+});
+$('pairCancel').addEventListener('click', async () => {
+  stopPairPoll();
+  try { state.chip = await api('/api/me/chip/cancel', {}); } catch { /* ignore */ }
+  renderChip();
+});
+
 // ---- press & hold to open the gate -------------------------------------------
 let gateTimers = [];
 
@@ -412,6 +569,7 @@ async function triggerGate(btn) {
   if (navigator.vibrate) navigator.vibrate(30);
   try {
     showGate(await api('/api/gate', { action }));
+    refreshBike();
   } catch (err) {
     if (err.status === 401) { setUser(null); openAuth('login'); }
     toast(errText(err));
@@ -459,6 +617,8 @@ function renderAll() {
   setUser(state.user);
   renderAuthTexts();
   renderGateTexts();
+  if (state.bike) renderBike(false);
+  renderChip();
   if (state.live) { renderHero(state.live); renderSlots(state.live, true); renderActivity(state.live); renderSystem(state.live); }
   renderForecast();
 }

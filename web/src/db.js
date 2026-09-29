@@ -52,6 +52,29 @@ CREATE TABLE IF NOT EXISTS gate_events (
   detail  text
 );
 
+-- chip linked to an account; pair_until > now() means "link the next
+-- unknown chip that is tapped" (done by Node-RED in its tap lookup)
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS rfid_uid   text;
+ALTER TABLE app_users ADD COLUMN IF NOT EXISTS pair_until timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS app_users_rfid_uid ON app_users (rfid_uid);
+
+-- one row per reservation, written by the Node-RED station logic:
+-- reserved -> parked -> done, or reserved -> expired
+CREATE TABLE IF NOT EXISTS parking_sessions (
+  id          bigserial   PRIMARY KEY,
+  uid         text        NOT NULL,          -- chip uid, or APP-<username>
+  user_id     bigint      REFERENCES app_users (id) ON DELETE SET NULL,
+  slot        integer     NOT NULL,
+  status      text        NOT NULL,
+  reserved_at timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz,
+  parked_at   timestamptz,
+  ended_at    timestamptz
+);
+CREATE INDEX IF NOT EXISTS parking_sessions_open ON parking_sessions (slot) WHERE status IN ('reserved', 'parked');
+CREATE INDEX IF NOT EXISTS parking_sessions_uid  ON parking_sessions (uid, reserved_at DESC);
+CREATE INDEX IF NOT EXISTS parking_sessions_user ON parking_sessions (user_id, reserved_at DESC);
+
 CREATE TABLE IF NOT EXISTS maintenance_runs (
   id          bigserial   PRIMARY KEY,
   ts          timestamptz NOT NULL DEFAULT now(),

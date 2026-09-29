@@ -17,14 +17,19 @@ open and close the gate.
   Creating an account needs the registration code (`REGISTRATION_CODE`,
   default `Hack-a-bike` in `docker-compose.yml`) because the dashboard is
   published on the internet through Pangolin.
-- **Gate from the phone** (press and hold):
-  - *Einparken* publishes a tap `{"uid":"APP-<user>"}` on
-    `bikestation/entrance/nfc/tap`, so Node-RED reserves a slot and shows it on
-    the LCD like for a chip, then sends `open`, and `close` after
-    `GATE_OPEN_SECONDS`, to `bikestation/entrance/gate`.
-  - *Abholen* only opens and closes the gate.
-  - Refused while the station is full (when the sensors are live), 10 s
-    cooldown per user; every attempt is logged in `gate_events`.
+- **Gate from the phone** (press and hold): publishes a tap
+  `{"uid":"APP-<user>","action":"park"|"pickup"}` on
+  `bikestation/entrance/nfc/tap`. Node-RED handles it exactly like a chip -
+  LCD greeting, slot reservation, gate open/close (see the main README,
+  "Station logic"). Refused while the station is full (when the sensors are
+  live), 10 s cooldown per user; every attempt is logged in `gate_events`.
+- **Mein Rad**: the current reservation with a 5-minute countdown, or the
+  parked bike with a running parking time, and the last parking duration.
+  Your slot is marked in the slot grid. Read from `parking_sessions` (by
+  account, app uid and linked chip).
+- **Link a chip**: "Verknüpfen" opens a 60 s window; the next unknown chip
+  tapped at the reader is linked to the account (Node-RED does the linking in
+  its tap lookup). Afterwards the station greets you by name for chip taps.
 
 ## Data housekeeping
 

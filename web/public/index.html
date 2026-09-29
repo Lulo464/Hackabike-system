@@ -88,6 +88,16 @@
           <h2><span data-i18n="access.hello">Hallo,</span> <span id="userName"></span></h2>
           <button class="link" type="button" id="logoutBtn" data-i18n="access.logout">Abmelden</button>
         </div>
+        <div class="mybike" id="myBike" data-state="none">
+          <div class="mybike-icon"><svg id="myBikeIcon"><use href="#i-bike"/></svg></div>
+          <div class="mybike-text">
+            <div class="mybike-kicker" data-i18n="bike.title">Mein Rad</div>
+            <div class="mybike-title" id="myBikeTitle"></div>
+            <div class="mybike-sub" id="myBikeSub"></div>
+          </div>
+          <div class="mybike-timer" id="myBikeTimer"></div>
+          <div class="mybike-bar" id="myBikeBar" hidden><span id="myBikeBarFill"></span></div>
+        </div>
         <p class="muted small" data-i18n="access.hold">Zum Öffnen gedrückt halten, damit das Gate nicht aus Versehen aufgeht.</p>
         <div class="gate-buttons">
           <button class="hold-btn park" type="button" data-action="park">
@@ -119,6 +129,21 @@
             <div class="gate-sub" id="gateSub"></div>
             <div class="countdown"><span id="countdownBar"></span></div>
           </div>
+        </div>
+
+        <div class="chip-row" id="chipRow">
+          <span class="chip-icon"><svg><use href="#i-chip"/></svg></span>
+          <div class="chip-text"><b id="chipTitle"></b><small id="chipSub"></small></div>
+          <button class="btn ghost chip-btn" type="button" id="chipAction"></button>
+        </div>
+        <div class="pairing" id="pairing" hidden>
+          <div class="nfc-anim" aria-hidden="true"><i></i><i></i><i></i><svg><use href="#i-chip"/></svg></div>
+          <div class="pairing-text">
+            <b data-i18n="chip.pairTitle">Halte jetzt deinen Chip an den Leser</b>
+            <p data-i18n="chip.pairText"></p>
+            <div class="pair-count" id="pairCount"></div>
+          </div>
+          <button class="link" type="button" id="pairCancel" data-i18n="auth.cancel">Abbrechen</button>
         </div>
       </div>
     </section>

@@ -271,9 +271,10 @@ main > .two-col { animation: rise .6s var(--ease) .24s both; }
 .slot-icon { font-size: 1.9rem; color: var(--ink-2); }
 .slot[data-state="free"] .slot-icon { color: var(--good-ink); }
 .slot[data-state="occupied"] .slot-icon { color: var(--accent); animation: park .7s var(--spring); }
-.slot[data-state="reserved"] .slot-icon { color: var(--warn-ink); animation: tick 2s linear infinite; }
+.slot[data-state="reserved"] .slot-icon { color: var(--warn-ink); animation: breathe 2.6s ease-in-out infinite; }
 @keyframes park { from { transform: translateX(-18px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes tick { to { transform: rotate(360deg); } }
+/* reserved: a calm pulse instead of a spinning clock */
+@keyframes breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: .65; } }
 .slot-state { font-weight: 700; margin-top: 8px; }
 .slot-meta { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .slot.stale { opacity: .6; }
@@ -379,3 +380,67 @@ main > .two-col { animation: rise .6s var(--ease) .24s both; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---- my bike ------------------------------------------------------------ */
+.mybike {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  margin: 12px 0 14px; padding: 14px; border-radius: 16px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  transition: background .5s var(--ease), border-color .5s;
+}
+.mybike.changed { animation: pop-in .5s var(--spring); }
+.mybike[data-state="reserved"] { background: color-mix(in srgb, var(--warn) 12%, var(--surface-2)); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+.mybike[data-state="parked"] { background: color-mix(in srgb, var(--accent) 10%, var(--surface-2)); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+.mybike-icon {
+  width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+  background: var(--surface); color: var(--muted); font-size: 1.6rem;
+}
+.mybike[data-state="reserved"] .mybike-icon { color: var(--warn-ink); }
+.mybike[data-state="reserved"] .mybike-icon svg { animation: breathe 2.6s ease-in-out infinite; }
+.mybike[data-state="parked"] .mybike-icon { color: var(--accent); }
+.mybike[data-state="parked"] .mybike-icon svg { animation: park .7s var(--spring); }
+.mybike-kicker { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mybike-title { font-weight: 700; line-height: 1.25; }
+.mybike-sub { font-size: .85rem; color: var(--ink-2); }
+.mybike-timer { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.mybike-timer:empty { display: none; }
+.mybike[data-state="reserved"] .mybike-timer { color: var(--warn-ink); }
+.mybike[data-state="reserved"].urgent .mybike-timer { color: var(--crit-ink); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .45; } }
+.mybike-bar { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.mybike-bar span { display: block; height: 100%; background: var(--warn); transform-origin: left; transition: transform 1s linear; }
+
+.slot.mine { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+.mine-badge {
+  position: absolute; right: 10px; bottom: 10px; font-size: .68rem; font-weight: 700;
+  padding: .15rem .45rem; border-radius: 999px; background: var(--accent); color: #fff;
+  animation: pop-in .4s var(--spring);
+}
+
+/* ---- chip link -------------------------------------------------------- */
+.chip-row {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.chip-icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); font-size: 1.25rem; }
+.chip-row.linked .chip-icon { color: var(--good-ink); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.chip-text b { display: block; font-size: .95rem; }
+.chip-text small { color: var(--muted); font-size: .82rem; }
+.chip-btn { padding: .55rem .9rem; font-size: .88rem; }
+.chip-row.linked .chip-btn { background: transparent; color: var(--crit-ink); }
+
+.pairing {
+  margin-top: 12px; padding: 16px; border-radius: 16px; display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2)); animation: pop-in .45s var(--spring);
+}
+.pairing .link { grid-column: 1 / -1; justify-self: start; }
+.pairing-text p { margin: 2px 0 0; font-size: .86rem; color: var(--ink-2); }
+.pair-count { margin-top: 6px; font-size: .82rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.nfc-anim { position: relative; width: 64px; height: 64px; display: grid; place-items: center; color: var(--accent); font-size: 1.8rem; }
+.nfc-anim i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: wave 2.1s var(--ease) infinite; }
+.nfc-anim i:nth-child(2) { animation-delay: .7s; }
+.nfc-anim i:nth-child(3) { animation-delay: 1.4s; }
+@keyframes wave { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(1.25); opacity: 0; } }
+.pairing.success { background: color-mix(in srgb, var(--good) 14%, var(--surface-2)); }
+.pairing.success .nfc-anim { color: var(--good-ink); }
+.pairing.success .nfc-anim i { border-color: var(--good); animation-iteration-count: 1; }
