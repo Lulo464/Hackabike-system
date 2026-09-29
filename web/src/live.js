@@ -64,7 +64,7 @@ async function slots() {
     const ageS = ts ? Math.round((now - ts.getTime()) / 1000) : null;
     return {
       slot: r.n,
-      state: ['free', 'occupied', 'reserved'].includes(state) ? state : 'unknown',
+      state: ['free', 'occupied', 'reserved', 'alarm'].includes(state) ? state : 'unknown',
       since: ts,
       ageS,
       fresh: ageS !== null && ageS <= STALE_S,
@@ -104,6 +104,8 @@ async function fast() {
     total: SLOTS,
     known: known.length,
     free: slotList.filter((s) => s.state === 'free').length,
+    // a theft alarm on any slot locks the whole station until an admin resets it
+    locked: slotList.some((s) => s.state === 'alarm'),
     occupied: slotList.filter((s) => s.state === 'occupied' || s.state === 'reserved').length,
     slots: slotList,
     gate: g ? { angle: Number(g.payload), ts: g.ts } : null,

@@ -61,13 +61,13 @@ Anpassen ueber `LEDS_PER_SLOT` und `GAP` im Effekt; `num_leds = 4*LEDS_PER_SLOT 
 
 | Topic | Richtung | Payload |
 |---|---|---|
-| `bikestation/slot{1-4}/state` | Pi -> ESP32 | `free` gruen, `occupied` rot, `reserved` blau blinkend, `alarm` rot schnell blinkend, sonst aus |
+| `bikestation/slot{1-4}/state` | Pi -> ESP32 | `free` gruen, `occupied` rot, `reserved` blau blinkend (Reservierung oder Abholung), `alarm` rot schnell blinkend (Diebstahl, Station gesperrt), sonst aus |
 | `bikestation/slot{1-4}/distance` | ESP32 -> Pi | Abstand in cm, je Slot alle 200 ms (Median ueber 5 Messungen, nicht retained) |
 | `bikestation/slot{1-4}/sensor` | ESP32 -> Pi | `ok` / `no_echo` (nach 3 Fehlmessungen in Folge, retained) |
 | `bikestation/bikeslot-test/status` | ESP 1 -> Pi | `online` / `offline` |
 | `bikestation/bikeslot-2/status` | ESP 2 -> Pi | `online` / `offline` |
 | `bikestation/entrance/nfc/tap` | ESP 2 -> Pi | `{"uid":"A1B2C3D4"}`, einmal pro aufgelegter Karte (gleiche Karte erst wieder nach 2 s weg) |
-| `bikestation/entrance/oled/display` | Pi -> ESP 2 | Text fuers LCD (oder `{"text":"..."}`), 2x16 Zeichen, keine Umlaute. Hintergrund gruen bei `Park at...`/`Secured...`, rot bei `...Full...`, sonst weiss |
+| `bikestation/entrance/oled/display` | Pi -> ESP 2 | Text fuers LCD (oder `{"text":"..."}`), 2x16 Zeichen, keine Umlaute. Hintergrund rot bei `Full`, `ALARM`, `gesperrt`, `unbekannt`, `Kein Rad`, `schon`; gruen bei `Park at...`/`Secured...`/`Rad in Slot...`; sonst weiss |
 | `bikestation/entrance/gate` | Pi -> ESP 2 | Servo-Winkel in Grad `0`-`180`, oder `open` (90) / `close` (0) |
 | `bikestation/entrance/gate/angle` | ESP 2 -> Pi | zuletzt angefahrener Winkel (retained) |
 

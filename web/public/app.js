@@ -94,6 +94,8 @@ function renderHero(l) {
   if (!l.fresh) {
     level = 'stale'; pill = ['', 'alert', t('pill.offline')];
     title = t(l.lastUpdate ? 'title.last' : 'title.nodata');
+  } else if (l.locked) {
+    level = 'crit'; pill = ['crit', 'alert', t('pill.locked')]; title = t('title.locked');
   } else if (free === 0) {
     level = 'crit'; pill = ['crit', 'x', t('pill.full')]; title = t('title.full');
   } else if (share <= 0.25) {
@@ -129,7 +131,7 @@ function renderHero(l) {
 }
 
 // ---- slots -----------------------------------------------------------------
-const SLOT_ICON = { free: 'p', occupied: 'bike', reserved: 'clock', unknown: 'alert' };
+const SLOT_ICON = { free: 'p', occupied: 'bike', reserved: 'clock', alarm: 'alert', unknown: 'alert' };
 
 function renderSlots(l, rebuild = false) {
   const wrap = $('slots');

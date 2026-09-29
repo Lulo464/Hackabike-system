@@ -20,6 +20,11 @@ module.exports = {
 
     flowFile: "flows.json",
     flowFileCredentials: "flows_cred.json",
+    // Flow context on disk: theft alarms, pickups and reservations survive a
+    // restart (otherwise a restart would lift the station lock).
+    contextStorage: {
+        default: { module: "localfilesystem" }
+    },
 
     // Keep the editor usable without the "safe mode" dialog on first boot.
     editorTheme: {

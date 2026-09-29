@@ -9,6 +9,8 @@ npm-debug.log*
 
 # node-RED
 nodered/flows_cred.json
+# flow context on disk (alarms, reservations)
+nodered/context/
 
 # secrets — never commit real values
 .env

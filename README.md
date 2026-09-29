@@ -47,7 +47,7 @@ soon as the stack is up.
 docker-compose.yml
 install.sh                     one-time host setup (Docker + SSH key)
 enable-ssh-key.sh              push this machine's public key to the Pi
-gen_flows.py                   generator for nodered/flows.json
+gen_flows.py                   outdated generator, do not run (see below)
 dockerfiles/
   mosquitto/Dockerfile
   nodered/Dockerfile
@@ -60,38 +60,39 @@ web/                           mobile dashboard container, see web/README.md
 newt/
   docker-compose.example.yml   template for the Pangolin tunnel (real file on the Pi)
 nodered/
-  settings.js                  /red editor root, credential secret
-  flows.json                   generated flow — edit gen_flows.py, not this
+  settings.js                  /red editor root, credential secret, context on disk
+  flows.json                   the flow — edit in the Node-RED editor (/red) or here
 docs/
   Hackathon.md                 architecture, topic schema, BOM
   Design_v2.svg                physical design
 ```
 
-`nodered/flows.json` is generated. Change `gen_flows.py` and re-run:
-
-```bash
-python3 gen_flows.py
-```
+`nodered/flows.json` is maintained by hand (Node-RED editor on the Pi, then
+commit the file). `gen_flows.py` still builds the very first flow with the old
+topic scheme; running it would overwrite everything.
 
 ## MQTT topics
 
 All under the `bikestation/` root.
 
-| Topic                              | Direction      | Payload                     |
-|------------------------------------|----------------|-----------------------------|
-| `bikestation/entrance/nfc/tap`      | ESP32 → broker | `{"uid":"A1B2","timestamp":…}` |
-| `bikestation/entrance/oled/display` | broker → ESP32 | `{"text":"Welcome!"}`       |
-| `bikestation/slot/{1-4}/proximity`  | ESP32 → broker | distance + occupancy        |
-| `bikestation/slot/{1-4}/vibration`  | ESP32 → broker | g-force + sabotage alert    |
-| `bikestation/slot/{1-4}/led`        | broker → ESP32 | slot, colour, blink         |
-| `bikestation/system/alerts`        | ESP32 → broker | alert text                  |
-| `bikestation/system/status`        | ESP32 → broker | LWT online/offline          |
+| Topic | Direction | Payload |
+|---|---|---|
+| `bikestation/slot{1-4}/distance` | ESP → broker | cm, every 200 ms; `999` = no echo |
+| `bikestation/slot{1-4}/sensor` | ESP → broker | `ok` / `no_echo` (retained) |
+| `bikestation/slot{1-4}/state` | Node-RED → ESP 1 | `free` green, `occupied` red, `reserved` blue blink (reservation or pickup), `alarm` fast red blink (retained) |
+| `bikestation/entrance/nfc/tap` | ESP 2 / app → broker | `{"uid":"A1B2C3D4"}`; the app adds `"action":"park"\|"pickup"` and uses `APP-<username>` |
+| `bikestation/entrance/oled/display` | Node-RED → ESP 2 | text for the 16x2 LCD (or `{"text":…}`) |
+| `bikestation/entrance/gate` | Node-RED → ESP 2 | servo angle `0`-`180`, or `open` (90) / `close` (0) |
+| `bikestation/entrance/gate/angle` | ESP 2 → broker | last angle (retained) |
+| `bikestation/system/alerts` | Node-RED → broker | `{"type":"theft"\|"alarm_cleared","slot":N,"at":"…"}` |
+| `bikestation/bikeslot-test/status`, `bikestation/bikeslot-2/status` | ESP → broker | `online` / `offline` (LWT) |
 
-Publish a test message:
+Wiring and firmware details: `esp/ESP32-README.md`.
+
+Open the gate by hand (e.g. to calibrate the servo):
 
 ```bash
-docker compose exec mosquitto mosquitto_pub \
-  -t 'bikestation/system/status' -m '{"status":"online"}'
+docker compose exec mosquitto mosquitto_pub -t 'bikestation/entrance/gate' -m 90
 ```
 
 ## Hardware
@@ -115,9 +116,16 @@ Chip and app taps take the same path through the flow:
    (`app_users.rfid_uid`, or `APP-<username>` for the app). If an account is
    waiting to link a chip (`pair_until`), the chip is linked instead and the
    tap does nothing else.
-2. `Station logic` decides: a known chip with a parked bike means **pickup**,
-   otherwise **park** (the app says which). Park reserves the first free slot
-   for **5 minutes**; several reservations can exist at once.
+2. `Station logic` decides:
+   - an **unknown chip** (no account) is refused: `Karte unbekannt`, gate stays shut;
+   - a known chip with a parked bike means **pickup**, otherwise **park**
+     (the app says which);
+   - **one bike per account**: park is refused while the account has a bike
+     parked (`Du hast schon / ein Rad: Slot N`);
+   - park reserves the first free slot for **5 minutes**; several reservations
+     can exist at once;
+   - pickup lets the owner take the bike for **2 minutes**; the slot blinks
+     blue (`reserved`) meanwhile.
 3. LCD (16x2, ASCII only): `Hallo <Name> / Willkommen!` -> after 2 s
    `Park at Slot N / Gate ist offen` (or `Rad in Slot N / Gute Fahrt!`,
    `Station Full!`) -> after 10 s more `Willkommen! / Bitte scannen`.
@@ -126,6 +134,16 @@ Chip and app taps take the same path through the flow:
    `reserved -> parked` (bike arrives) `-> done` (bike leaves), or
    `reserved -> expired`. A slot only counts as changed after 5 equal readings
    (~1 s), so sensor flicker does not end a session.
+
+**Theft alarm and lock.** If a parked bike leaves its slot without a pickup,
+the slot turns to `alarm` (fast red blink), an alert goes out on
+`bikestation/system/alerts`, the gate closes and the whole station is locked:
+every chip and app tap is refused (`Station gesperrt`) and the gate does not
+open. The alarm is cleared on the dashboard page **`/dashboard/admin`** (no
+login); clearing ends the stolen bike's session so its owner can park again.
+Alarms, pickups and reservations are kept in the flow context on disk
+(`nodered/context/`), so a Node-RED restart does not lift the lock. A sensor
+without echo (`999`) never counts as "bike gone".
 
 The Postgres ingest (`bikestation/#`) uses its **own MQTT connection**
 (`bikestation-broker (db ingest)`): on the shared connection the broker

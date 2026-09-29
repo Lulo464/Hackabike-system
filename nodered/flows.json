@@ -257,7 +257,6 @@
             [
                 "090b098d59c8c92e",
                 "e8f3d13f0af759ae",
-                "fn_smart_logic",
                 "fn_kiosk_avail"
             ]
         ]
@@ -267,7 +266,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "parse s1 state",
-        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : (s === 'alarm' ? 'ALARM' : 'IN USE'));\nreturn msg;",
         "outputs": 1,
         "x": 350,
         "y": 250,
@@ -360,7 +359,6 @@
             [
                 "29a0536bd76f882c",
                 "e8f3d13f0af759ae",
-                "fn_smart_logic",
                 "fn_kiosk_avail"
             ]
         ]
@@ -370,7 +368,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "parse s2 state",
-        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : (s === 'alarm' ? 'ALARM' : 'IN USE'));\nreturn msg;",
         "outputs": 1,
         "x": 350,
         "y": 380,
@@ -463,7 +461,6 @@
             [
                 "c9f8890485a16b84",
                 "e8f3d13f0af759ae",
-                "fn_smart_logic",
                 "fn_kiosk_avail"
             ]
         ]
@@ -473,7 +470,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "parse s3 state",
-        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : (s === 'alarm' ? 'ALARM' : 'IN USE'));\nreturn msg;",
         "outputs": 1,
         "x": 350,
         "y": 510,
@@ -566,7 +563,6 @@
             [
                 "de6969cd102f4701",
                 "e8f3d13f0af759ae",
-                "fn_smart_logic",
                 "fn_kiosk_avail"
             ]
         ]
@@ -576,7 +572,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "parse s4 state",
-        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : 'IN USE');\nreturn msg;",
+        "func": "var s = String(msg.payload).trim().toLowerCase();\nmsg.payload = s === 'free' ? 'AVAILABLE' : (s === 'reserved' ? 'RESERVED' : (s === 'alarm' ? 'ALARM' : 'IN USE'));\nreturn msg;",
         "outputs": 1,
         "x": 350,
         "y": 640,
@@ -658,7 +654,7 @@
         "id": "comment_smart_logic",
         "type": "comment",
         "z": "cc25d96a5ae42c89",
-        "name": "\u2699\ufe0f SMART PARKING LOGIC \u2699\ufe0f",
+        "name": "⚙️ SMART PARKING LOGIC ⚙️",
         "info": "Handles RFID assignments, LCD display, and LED color states.",
         "x": 970,
         "y": 400,
@@ -689,9 +685,9 @@
         "id": "fn_smart_logic",
         "type": "function",
         "z": "cc25d96a5ae42c89",
-        "name": "Station logic (reserve, LCD, gate, sessions)",
-        "func": "// Station logic: reservations, parking sessions, LCD and gate.\n// Inputs\n//   bikestation/slotN/state  ~5 Hz from the occupancy functions\n//   a tap after the db lookup: msg.tap, msg.payload = [{user_id, display_name, paired, parked_slot}]\n//                              (msg.error set and no rows when the lookup failed)\n//   station/tick             every 10 s, expires reservations when no sensor reports\n// Outputs: 1 LCD steps, 2 slot state, 3 gate, 4 session sql\nconst SLOTS = 4;\nconst RESERVE_MS = 5 * 60 * 1000;\nconst STABLE = 5;          // equal readings (~1 s) before a slot counts as changed\n\nconst occ = flow.get('occupiedStable') || {};      // slot -> true/false, debounced\nconst res = flow.get('reservations') || {};        // slot -> {uid, userId, name, at}\nconst seen = context.get('seen') || {};            // slot -> {cand, n}\n\nconst lcdOut = [], stateOut = [], gateOut = [], sqlOut = [];\nconst sql = (query, params) => sqlOut.push({ query: query, params: params });\nconst lcd = (steps) => { lcdOut.length = 0; lcdOut.push({ steps: steps }); };\nconst IDLE = { l1: 'Willkommen!', l2: 'Bitte scannen' };\nconst later = (step, at) => Object.assign({}, step, { at: at });\n\n// the LCD only has ASCII\nfunction ascii(s) {\n    return String(s || '')\n        .replace(/\u00e4/g, 'ae').replace(/\u00f6/g, 'oe').replace(/\u00fc/g, 'ue')\n        .replace(/\u00c4/g, 'Ae').replace(/\u00d6/g, 'Oe').replace(/\u00dc/g, 'Ue').replace(/\u00df/g, 'ss')\n        .replace(/[^\\x20-\\x7e]/g, '').trim();\n}\nconst hello = (name) => name ? { l1: 'Hallo ' + name.slice(0, 9), l2: 'Willkommen!' } : { l1: 'Hallo!', l2: 'Willkommen!' };\nconst stateOf = (slot) => occ[slot] ? 'occupied' : (res[slot] ? 'reserved' : 'free');\nconst publishState = (slot) => stateOut.push({ topic: 'bikestation/slot' + slot + '/state', payload: stateOf(slot), retain: true });\n\nfunction expireOld() {\n    const now = Date.now();\n    for (const k of Object.keys(res)) {\n        if (now - res[k].at > RESERVE_MS) {\n            delete res[k];\n            sql(\"UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $1 AND status = 'reserved'\", [Number(k)]);\n            publishState(k);\n        }\n    }\n}\n\nif (msg.topic === 'station/tick') {\n    expireOld();\n}\nelse if (msg.topic && msg.topic.startsWith('bikestation/slot')) {\n    const slot = Number(msg.topic.split('/')[1].replace('slot', ''));\n    const isOcc = String(msg.payload).trim().toLowerCase() === 'occupied';\n    const s = seen[slot] || { cand: null, n: 0 };\n    if (s.cand === isOcc) s.n++; else { s.cand = isOcc; s.n = 1; }\n    seen[slot] = s;\n\n    if (s.n >= STABLE && occ[slot] !== isOcc) {\n        const before = occ[slot];\n        occ[slot] = isOcc;\n        if (isOcc && res[slot]) {\n            // the reserved bike has arrived\n            const r = res[slot];\n            delete res[slot];\n            sql(\"UPDATE parking_sessions SET status = 'parked', parked_at = now() WHERE slot = $1 AND status = 'reserved'\", [slot]);\n            lcd([{ l1: 'Secured: Slot ' + slot, l2: r.name ? 'Danke ' + r.name.slice(0, 10) : 'Danke!', at: 0 }, later(IDLE, 10000)]);\n        } else if (!isOcc && before === true) {\n            // a bike has left\n            sql(\"UPDATE parking_sessions SET status = 'done', ended_at = now() WHERE slot = $1 AND status = 'parked'\", [slot]);\n        }\n    }\n    expireOld();\n}\nelse if (msg.tap) {\n    const t = msg.tap;\n    const row = Array.isArray(msg.payload) && msg.payload[0] ? msg.payload[0] : {};\n    const name = ascii(row.display_name);\n\n    if (row.paired) {\n        lcd([{ l1: 'Chip verknuepft', l2: name ? 'Hallo ' + name.slice(0, 10) : '', at: 0 }, later(IDLE, 10000)]);\n    } else {\n        const mine = Object.keys(res).find((k) => res[k].uid === t.uid || (row.user_id && res[k].userId === row.user_id));\n        const action = t.action || (row.parked_slot ? 'pickup' : 'park');\n\n        if (action === 'pickup') {\n            lcd([later(hello(name), 0),\n                 { l1: row.parked_slot ? 'Rad in Slot ' + row.parked_slot : 'Gate ist offen', l2: 'Gute Fahrt!', at: 2000 },\n                 later(IDLE, 12000)]);\n            gateOut.push({ payload: 'open' });\n        } else if (mine) {\n            // already has a reservation: show it again and give it a fresh 5 min\n            res[mine].at = Date.now();\n            sql(\"UPDATE parking_sessions SET expires_at = now() + make_interval(secs => $2) WHERE slot = $1 AND status = 'reserved'\", [Number(mine), RESERVE_MS / 1000]);\n            lcd([later(hello(name), 0), { l1: 'Park at Slot ' + mine, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n            gateOut.push({ payload: 'open' });\n        } else {\n            let free = null;\n            for (let i = 1; i <= SLOTS; i++) { if (!occ[i] && !res[i]) { free = i; break; } }\n            if (!free) {\n                lcd([later(hello(name), 0), { l1: 'Station Full!', l2: 'Kein Platz frei', at: 2000 }, later(IDLE, 12000)]);\n            } else {\n                res[free] = { uid: t.uid, userId: row.user_id || null, name: name, at: Date.now() };\n                publishState(free);\n                sql(\"WITH stale AS (UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $3 AND status = 'reserved') \" +\n                    \"INSERT INTO parking_sessions (uid, user_id, slot, status, reserved_at, expires_at) \" +\n                    \"VALUES ($1, $2, $3, 'reserved', now(), now() + make_interval(secs => $4))\",\n                    [t.uid, row.user_id || null, free, RESERVE_MS / 1000]);\n                lcd([later(hello(name), 0), { l1: 'Park at Slot ' + free, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n                gateOut.push({ payload: 'open' });\n            }\n        }\n    }\n}\n\nflow.set('occupiedStable', occ);\nflow.set('reservations', res);\ncontext.set('seen', seen);\nreturn [lcdOut, stateOut, gateOut, sqlOut];",
-        "outputs": 4,
+        "name": "Station logic (access, reserve, pickup, alarm, LCD, gate)",
+        "func": "// Station logic: access control, reservations, pickups, theft alarm, LCD, gate, sessions.\n// Inputs\n//   station/occ              ~5 Hz per slot from the occupancy functions: msg.slot, msg.occupied\n//   a tap after the db lookup: msg.tap, msg.payload = [{user_id, display_name, paired, parked_slot}]\n//                              (no rows when the lookup failed)\n//   station/tick             every 10 s, expires reservations and pickups\n//   admin/reset              from the admin page, msg.payload = slot number or 'all'\n// Outputs: 1 LCD steps, 2 slot state, 3 gate, 4 session sql, 5 alerts, 6 admin page\n//\n// Rules: only chips/app users with an account get in, one bike per account.\n// A parked bike may only leave after its owner tapped for pickup; otherwise\n// the slot goes to 'alarm' and the whole station is locked (no taps, gate\n// stays closed) until the alarm is reset on the admin page.\nconst SLOTS = 4;\nconst RESERVE_MS = 5 * 60 * 1000;\nconst PICKUP_MS = 2 * 60 * 1000;\nconst STABLE = 5;          // equal readings (~1 s) before a slot counts as changed\n\nconst occ = flow.get('occupiedStable') || {};      // slot -> true/false, debounced\nconst res = flow.get('reservations') || {};        // slot -> {uid, userId, name, at}\nconst pick = flow.get('pickups') || {};            // slot -> {userId, name, at}: owner may take the bike\nconst alarms = flow.get('alarms') || {};           // slot -> {at}: bike left without pickup\nconst seen = context.get('seen') || {};            // slot -> {cand, n}\n\nconst lcdOut = [], stateOut = [], gateOut = [], sqlOut = [], alertOut = [];\nlet adminChanged = false;\nconst sql = (query, params) => sqlOut.push({ query: query, params: params });\nconst lcd = (steps) => { lcdOut.length = 0; lcdOut.push({ steps: steps }); };\nconst IDLE = { l1: 'Willkommen!', l2: 'Bitte scannen' };\nconst later = (step, at) => Object.assign({}, step, { at: at });\n\n// the LCD only has ASCII\nfunction ascii(s) {\n    return String(s || '')\n        .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')\n        .replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue').replace(/ß/g, 'ss')\n        .replace(/[^\\x20-\\x7e]/g, '').trim();\n}\nconst hello = (name) => name ? { l1: 'Hallo ' + name.slice(0, 9), l2: 'Willkommen!' } : { l1: 'Hallo!', l2: 'Willkommen!' };\nconst locked = () => Object.keys(alarms).length > 0;\nconst lockScreen = () => {\n    const slots = Object.keys(alarms).sort();\n    return { l1: 'ALARM Slot ' + slots.join(','), l2: 'Station gesperrt' };\n};\n// same priority as the occupancy functions\nconst stateOf = (slot) => alarms[slot] ? 'alarm'\n    : pick[slot] ? 'reserved'\n    : occ[slot] ? 'occupied'\n    : (res[slot] ? 'reserved' : 'free');\nconst publishState = (slot) => stateOut.push({ topic: 'bikestation/slot' + slot + '/state', payload: stateOf(slot), retain: true });\nconst alert = (type, slot) => alertOut.push({\n    topic: 'bikestation/system/alerts',\n    payload: JSON.stringify({ type: type, slot: Number(slot), at: new Date().toISOString() }),\n});\n\nfunction expireOld() {\n    const now = Date.now();\n    for (const k of Object.keys(res)) {\n        if (now - res[k].at > RESERVE_MS) {\n            delete res[k];\n            sql(\"UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $1 AND status = 'reserved'\", [Number(k)]);\n            publishState(k);\n        }\n    }\n    for (const k of Object.keys(pick)) {\n        if (now - pick[k].at > PICKUP_MS) {\n            delete pick[k];\n            publishState(k);\n        }\n    }\n}\n\nif (msg.topic === 'station/tick') {\n    expireOld();\n    adminChanged = true;   // keeps the admin page current after a reload\n}\nelse if (msg.topic === 'station/occ') {\n    const slot = Number(msg.slot);\n    const isOcc = msg.occupied === true;\n    const s = seen[slot] || { cand: null, n: 0 };\n    if (s.cand === isOcc) s.n++; else { s.cand = isOcc; s.n = 1; }\n    seen[slot] = s;\n\n    if (s.n >= STABLE && occ[slot] !== isOcc) {\n        const before = occ[slot];\n        occ[slot] = isOcc;\n        if (isOcc && res[slot]) {\n            // the reserved bike has arrived\n            const r = res[slot];\n            delete res[slot];\n            sql(\"UPDATE parking_sessions SET status = 'parked', parked_at = now() WHERE slot = $1 AND status = 'reserved'\", [slot]);\n            lcd([{ l1: 'Secured: Slot ' + slot, l2: r.name ? 'Danke ' + r.name.slice(0, 10) : 'Danke!', at: 0 }, later(IDLE, 10000)]);\n        } else if (!isOcc && before === true) {\n            if (pick[slot]) {\n                // the owner took the bike\n                delete pick[slot];\n                sql(\"UPDATE parking_sessions SET status = 'done', ended_at = now() WHERE slot = $1 AND status = 'parked'\", [slot]);\n                publishState(slot);\n            } else if (!alarms[slot]) {\n                // a bike left without pickup: alarm, lock the station\n                alarms[slot] = { at: Date.now() };\n                publishState(slot);\n                alert('theft', slot);\n                gateOut.push({ payload: 'close' });\n                lcd([later(lockScreen(), 0)]);\n                adminChanged = true;\n            }\n        }\n    }\n    expireOld();\n}\nelse if (msg.topic === 'admin/reset') {\n    const which = String(msg.payload) === 'all' ? Object.keys(alarms) : [String(Number(msg.payload))];\n    for (const k of which) {\n        if (!alarms[k]) continue;\n        delete alarms[k];\n        // the bike is gone: close its session so the owner can park again\n        sql(\"UPDATE parking_sessions SET status = 'done', ended_at = now() WHERE slot = $1 AND status = 'parked'\", [Number(k)]);\n        publishState(k);\n        alert('alarm_cleared', k);\n        adminChanged = true;\n    }\n    if (adminChanged) lcd([later(locked() ? lockScreen() : IDLE, 0)]);\n}\nelse if (msg.tap) {\n    const t = msg.tap;\n    const row = Array.isArray(msg.payload) && msg.payload[0] ? msg.payload[0] : {};\n    const name = ascii(row.display_name);\n\n    if (row.paired) {\n        lcd([{ l1: 'Chip verknuepft', l2: name ? 'Hallo ' + name.slice(0, 10) : '', at: 0 },\n             later(locked() ? lockScreen() : IDLE, 10000)]);\n    } else if (locked()) {\n        lcd([{ l1: 'Station gesperrt', l2: 'Alarm aktiv', at: 0 }, later(lockScreen(), 8000)]);\n    } else if (!row.user_id) {\n        lcd([{ l1: 'Karte unbekannt', l2: 'In App verknuepfen', at: 0 }, later(IDLE, 8000)]);\n    } else {\n        const mine = Object.keys(res).find((k) => res[k].uid === t.uid || res[k].userId === row.user_id);\n        const action = t.action || (row.parked_slot ? 'pickup' : 'park');\n\n        if (action === 'pickup') {\n            if (!row.parked_slot) {\n                lcd([later(hello(name), 0), { l1: 'Kein Rad', l2: 'geparkt', at: 2000 }, later(IDLE, 10000)]);\n            } else {\n                // the owner's slot blinks blue until the bike is out\n                const slot = row.parked_slot;\n                pick[slot] = { userId: row.user_id, name: name, at: Date.now() };\n                publishState(slot);\n                lcd([later(hello(name), 0), { l1: 'Rad in Slot ' + slot, l2: 'Gute Fahrt!', at: 2000 }, later(IDLE, 12000)]);\n                gateOut.push({ payload: 'open' });\n            }\n        } else if (row.parked_slot) {\n            // one bike per account\n            lcd([later(hello(name), 0), { l1: 'Du hast schon', l2: 'ein Rad: Slot ' + row.parked_slot, at: 2000 }, later(IDLE, 10000)]);\n        } else if (mine) {\n            // already has a reservation: show it again and give it a fresh 5 min\n            res[mine].at = Date.now();\n            sql(\"UPDATE parking_sessions SET expires_at = now() + make_interval(secs => $2) WHERE slot = $1 AND status = 'reserved'\", [Number(mine), RESERVE_MS / 1000]);\n            lcd([later(hello(name), 0), { l1: 'Park at Slot ' + mine, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n            gateOut.push({ payload: 'open' });\n        } else {\n            let free = null;\n            for (let i = 1; i <= SLOTS; i++) { if (!occ[i] && !res[i] && !alarms[i]) { free = i; break; } }\n            if (!free) {\n                lcd([later(hello(name), 0), { l1: 'Station Full!', l2: 'Kein Platz frei', at: 2000 }, later(IDLE, 12000)]);\n            } else {\n                res[free] = { uid: t.uid, userId: row.user_id, name: name, at: Date.now() };\n                publishState(free);\n                sql(\"WITH stale AS (UPDATE parking_sessions SET status = 'expired', ended_at = now() WHERE slot = $3 AND status = 'reserved') \" +\n                    \"INSERT INTO parking_sessions (uid, user_id, slot, status, reserved_at, expires_at) \" +\n                    \"VALUES ($1, $2, $3, 'reserved', now(), now() + make_interval(secs => $4))\",\n                    [t.uid, row.user_id, free, RESERVE_MS / 1000]);\n                lcd([later(hello(name), 0), { l1: 'Park at Slot ' + free, l2: 'Gate ist offen', at: 2000 }, later(IDLE, 12000)]);\n                gateOut.push({ payload: 'open' });\n            }\n        }\n    }\n}\n\nflow.set('occupiedStable', occ);\nflow.set('reservations', res);\nflow.set('pickups', pick);\nflow.set('alarms', alarms);\ncontext.set('seen', seen);\n\nlet adminOut = null;\nif (adminChanged) {\n    const slots = {};\n    for (let i = 1; i <= SLOTS; i++) slots[i] = stateOf(i);\n    adminOut = { topic: 'admin', payload: { alarms: alarms, slots: slots, locked: locked() } };\n}\nreturn [lcdOut, stateOut, gateOut, sqlOut, alertOut, adminOut];",
+        "outputs": 6,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
@@ -711,6 +707,12 @@
             ],
             [
                 "pg_sessions"
+            ],
+            [
+                "out_alerts"
+            ],
+            [
+                "admin_alarms_1"
             ]
         ]
     },
@@ -891,8 +893,8 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 1",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '1';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-        "outputs": 2,
+        "func": "// distance -> slot state (~5 Hz), plus the raw occupancy for the station\n// logic (output 3). The published state is not the occupancy: this function\n// republishes ~5x per second, so every state the station logic sets has to\n// be decided here too, or it would be overwritten within one cycle:\n//   alarm     the bike left without pickup (station locked)\n//   reserved  pickup allowed (bike still there) or a reservation (slot empty)\n// A 999 (no echo) is not a reading and changes nothing, so a broken sensor\n// cannot raise a theft alarm.\nvar SLOT = '1';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nif (isNaN(dist) || dist >= 999) return [null, distMsg, null];\nvar occupied = dist < 5;\nvar alarms = flow.get('alarms') || {};\nvar pickups = flow.get('pickups') || {};\nvar reservations = flow.get('reservations') || {};\nvar state = alarms[SLOT] ? 'alarm'\n          : pickups[SLOT] ? 'reserved'\n          : occupied ? 'occupied'\n          : (reservations[SLOT] ? 'reserved' : 'free');\nreturn [\n    { topic: 'bikestation/slot' + SLOT + '/state', payload: state, retain: true },\n    distMsg,\n    { topic: 'station/occ', slot: Number(SLOT), occupied: occupied },\n];",
+        "outputs": 3,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
@@ -906,6 +908,9 @@
             ],
             [
                 "a7b8797171c84f6d"
+            ],
+            [
+                "fn_smart_logic"
             ]
         ]
     },
@@ -914,8 +919,8 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 2",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '2';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-        "outputs": 2,
+        "func": "// distance -> slot state (~5 Hz), plus the raw occupancy for the station\n// logic (output 3). The published state is not the occupancy: this function\n// republishes ~5x per second, so every state the station logic sets has to\n// be decided here too, or it would be overwritten within one cycle:\n//   alarm     the bike left without pickup (station locked)\n//   reserved  pickup allowed (bike still there) or a reservation (slot empty)\n// A 999 (no echo) is not a reading and changes nothing, so a broken sensor\n// cannot raise a theft alarm.\nvar SLOT = '2';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nif (isNaN(dist) || dist >= 999) return [null, distMsg, null];\nvar occupied = dist < 5;\nvar alarms = flow.get('alarms') || {};\nvar pickups = flow.get('pickups') || {};\nvar reservations = flow.get('reservations') || {};\nvar state = alarms[SLOT] ? 'alarm'\n          : pickups[SLOT] ? 'reserved'\n          : occupied ? 'occupied'\n          : (reservations[SLOT] ? 'reserved' : 'free');\nreturn [\n    { topic: 'bikestation/slot' + SLOT + '/state', payload: state, retain: true },\n    distMsg,\n    { topic: 'station/occ', slot: Number(SLOT), occupied: occupied },\n];",
+        "outputs": 3,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
@@ -929,6 +934,9 @@
             ],
             [
                 "50e5077c9051197c"
+            ],
+            [
+                "fn_smart_logic"
             ]
         ]
     },
@@ -937,8 +945,8 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 3",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '3';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-        "outputs": 2,
+        "func": "// distance -> slot state (~5 Hz), plus the raw occupancy for the station\n// logic (output 3). The published state is not the occupancy: this function\n// republishes ~5x per second, so every state the station logic sets has to\n// be decided here too, or it would be overwritten within one cycle:\n//   alarm     the bike left without pickup (station locked)\n//   reserved  pickup allowed (bike still there) or a reservation (slot empty)\n// A 999 (no echo) is not a reading and changes nothing, so a broken sensor\n// cannot raise a theft alarm.\nvar SLOT = '3';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nif (isNaN(dist) || dist >= 999) return [null, distMsg, null];\nvar occupied = dist < 5;\nvar alarms = flow.get('alarms') || {};\nvar pickups = flow.get('pickups') || {};\nvar reservations = flow.get('reservations') || {};\nvar state = alarms[SLOT] ? 'alarm'\n          : pickups[SLOT] ? 'reserved'\n          : occupied ? 'occupied'\n          : (reservations[SLOT] ? 'reserved' : 'free');\nreturn [\n    { topic: 'bikestation/slot' + SLOT + '/state', payload: state, retain: true },\n    distMsg,\n    { topic: 'station/occ', slot: Number(SLOT), occupied: occupied },\n];",
+        "outputs": 3,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
@@ -952,6 +960,9 @@
             ],
             [
                 "119680028c581e7c"
+            ],
+            [
+                "fn_smart_logic"
             ]
         ]
     },
@@ -960,8 +971,8 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "Occ Dec Slot 4",
-        "func": "// distance -> slot state. While this slot holds the live reservation we\n// publish 'reserved' rather than 'free': this function republishes ~5x per\n// second, so a plain 'free' would overwrite the reservation set by\n// the station logic within one cycle and the LED would never settle on the\n// reserved blink.\nvar SLOT = '4';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nvar occupied = !isNaN(dist) && dist < 5;\nvar reservations = flow.get('reservations') || {};\nmsg.payload = occupied ? 'occupied'\n           : (reservations[SLOT] ? 'reserved' : 'free');\nmsg.topic = 'bikestation/slot' + SLOT + '/state';\nmsg.retain = true;\nreturn [msg, distMsg];",
-        "outputs": 2,
+        "func": "// distance -> slot state (~5 Hz), plus the raw occupancy for the station\n// logic (output 3). The published state is not the occupancy: this function\n// republishes ~5x per second, so every state the station logic sets has to\n// be decided here too, or it would be overwritten within one cycle:\n//   alarm     the bike left without pickup (station locked)\n//   reserved  pickup allowed (bike still there) or a reservation (slot empty)\n// A 999 (no echo) is not a reading and changes nothing, so a broken sensor\n// cannot raise a theft alarm.\nvar SLOT = '4';\nvar dist = parseFloat(msg.payload);\nvar distMsg = { topic: msg.topic, payload: dist };\nif (isNaN(dist) || dist >= 999) return [null, distMsg, null];\nvar occupied = dist < 5;\nvar alarms = flow.get('alarms') || {};\nvar pickups = flow.get('pickups') || {};\nvar reservations = flow.get('reservations') || {};\nvar state = alarms[SLOT] ? 'alarm'\n          : pickups[SLOT] ? 'reserved'\n          : occupied ? 'occupied'\n          : (reservations[SLOT] ? 'reserved' : 'free');\nreturn [\n    { topic: 'bikestation/slot' + SLOT + '/state', payload: state, retain: true },\n    distMsg,\n    { topic: 'station/occ', slot: Number(SLOT), occupied: occupied },\n];",
+        "outputs": 3,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
@@ -975,6 +986,9 @@
             ],
             [
                 "67b5326c23b611b3"
+            ],
+            [
+                "fn_smart_logic"
             ]
         ]
     },
@@ -1243,7 +1257,7 @@
         "order": 1,
         "width": 12,
         "height": "7",
-        "format": "<template>\n  <div class=\"kiosk-wrap\" :class=\"(msg && msg.payload && msg.payload.free <= 0) ? 'is-full' : 'is-ok'\">\n    <div class=\"kiosk-hint\">TAP CARD TO ENTER</div>\n    <div class=\"kiosk-count\" v-if=\"msg && msg.payload && msg.payload.free !== undefined\">{{ msg.payload.free }}</div>\n    <div class=\"kiosk-cap\" v-if=\"msg && msg.payload && msg.payload.free !== undefined\">of {{ msg.payload.total || 4 }} available</div>\n  </div>\n</template>\n\n\n<style scoped>\n.kiosk-wrap {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: clamp(6px, 1.5vh, 18px);\n  width: 100%;\n  min-height: clamp(220px, 42vh, 420px);\n  text-align: center;\n}\n.kiosk-hint {\n  font-size: clamp(20px, 5vw, 54px);\n  font-weight: 700;\n  letter-spacing: 2px;\n  color: #ffffff;\n  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);\n}\n.kiosk-count {\n  font-size: clamp(80px, 20vw, 210px);\n  font-weight: 800;\n  line-height: 0.95;\n  color: #00e676;\n  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.6);\n}\n.kiosk-wrap.is-full .kiosk-count { color: #ff5252; }\n.kiosk-cap {\n  font-size: clamp(14px, 3vw, 30px);\n  font-weight: 600;\n  color: rgba(255, 255, 255, 0.88);\n  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);\n}\n</style>",
+        "format": "<template>\n  <div class=\"kiosk-wrap\" :class=\"(msg && msg.payload && (msg.payload.locked || msg.payload.free <= 0)) ? 'is-full' : 'is-ok'\">\n    <div class=\"kiosk-hint\">{{ (msg && msg.payload && msg.payload.locked) ? 'STATION GESPERRT' : 'TAP CARD TO ENTER' }}</div>\n    <div class=\"kiosk-count\" v-if=\"msg && msg.payload && msg.payload.free !== undefined\">{{ msg.payload.free }}</div>\n    <div class=\"kiosk-cap\" v-if=\"msg && msg.payload && msg.payload.free !== undefined\">of {{ msg.payload.total || 4 }} available</div>\n  </div>\n</template>\n\n\n<style scoped>\n.kiosk-wrap {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: clamp(6px, 1.5vh, 18px);\n  width: 100%;\n  min-height: clamp(220px, 42vh, 420px);\n  text-align: center;\n}\n.kiosk-hint {\n  font-size: clamp(20px, 5vw, 54px);\n  font-weight: 700;\n  letter-spacing: 2px;\n  color: #ffffff;\n  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);\n}\n.kiosk-count {\n  font-size: clamp(80px, 20vw, 210px);\n  font-weight: 800;\n  line-height: 0.95;\n  color: #00e676;\n  text-shadow: 0 6px 40px rgba(0, 0, 0, 0.6);\n}\n.kiosk-wrap.is-full .kiosk-count { color: #ff5252; }\n.kiosk-cap {\n  font-size: clamp(14px, 3vw, 30px);\n  font-weight: 600;\n  color: rgba(255, 255, 255, 0.88);\n  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);\n}\n</style>",
         "storeOutMessages": true,
         "passthru": true,
         "resendOnRefresh": true,
@@ -1260,7 +1274,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "kiosk availability",
-        "func": "// bikestation/slotN/state -> availability for the user kiosk pane\nlet s = flow.get('slotState') || {};\nlet m = (msg.topic || '').match(/slot(\\d+)/);\nif (m) {\n  s[m[1]] = String(msg.payload).trim().toLowerCase() === 'occupied';\n  flow.set('slotState', s);\n}\nlet free = 0;\nfor (let i = 1; i <= 4; i++) { if (s[i] !== true) free++; }\nreturn { topic: 'kiosk', payload: { free: free, total: 4 } };",
+        "func": "// bikestation/slotN/state -> availability for the user kiosk pane.\n// An 'alarm' slot is not available, and any alarm locks the station.\nlet s = flow.get('slotState') || {};\nlet m = (msg.topic || '').match(/slot(\\d+)/);\nif (m) {\n  const st = String(msg.payload).trim().toLowerCase();\n  s[m[1]] = st === 'occupied' || st === 'alarm';\n  flow.set('slotState', s);\n}\nlet free = 0;\nfor (let i = 1; i <= 4; i++) { if (s[i] !== true) free++; }\nconst locked = Object.keys(flow.get('alarms') || {}).length > 0;\nreturn { topic: 'kiosk', payload: { free: locked ? 0 : free, total: 4, locked: locked } };",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -1426,7 +1440,7 @@
         "once": true,
         "onceDelay": "3",
         "topic": "",
-        "payload": "\u2014",
+        "payload": "—",
         "payloadType": "str",
         "x": 1540,
         "y": 540,
@@ -1691,7 +1705,7 @@
         "type": "function",
         "z": "cc25d96a5ae42c89",
         "name": "gate open -> close after 8 s",
-        "func": "// 'open' -> open the gate and close it again after OPEN_MS. Another open\n// while it is up restarts the timer instead of closing early.\nconst OPEN_MS = 8000;\nclearTimeout(context.get('closeTimer'));\nnode.send({ topic: 'bikestation/entrance/gate', payload: 'open' });\ncontext.set('closeTimer', setTimeout(() => {\n    node.send({ topic: 'bikestation/entrance/gate', payload: 'close' });\n}, OPEN_MS));\nreturn null;",
+        "func": "// 'open' -> open the gate and close it again after OPEN_MS. Another open\n// while it is up restarts the timer instead of closing early.\n// 'close', or any open while a theft alarm is active -> close right away.\nconst OPEN_MS = 8000;\nconst alarms = flow.get('alarms') || {};\nclearTimeout(context.get('closeTimer'));\nif (msg.payload !== 'open' || Object.keys(alarms).length > 0) {\n    node.send({ topic: 'bikestation/entrance/gate', payload: 'close' });\n    return null;\n}\nnode.send({ topic: 'bikestation/entrance/gate', payload: 'open' });\ncontext.set('closeTimer', setTimeout(() => {\n    node.send({ topic: 'bikestation/entrance/gate', payload: 'close' });\n}, OPEN_MS));\nreturn null;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -1747,5 +1761,94 @@
         "broker": "mosquitto",
         "port": "1883",
         "clientid": "nodered-bikestation-ingest"
+    },
+    {
+        "id": "out_alerts",
+        "type": "mqtt out",
+        "z": "cc25d96a5ae42c89",
+        "name": "System alerts",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker_local",
+        "x": 1240,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "admin_page_1",
+        "type": "ui-page",
+        "z": "cc25d96a5ae42c89",
+        "name": "Admin",
+        "ui": "ui_base_1",
+        "path": "/admin",
+        "icon": "",
+        "layout": "grid",
+        "theme": "skin_theme_light",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 3,
+        "className": ""
+    },
+    {
+        "id": "admin_grp_1",
+        "type": "ui-group",
+        "z": "cc25d96a5ae42c89",
+        "name": "ALARME",
+        "page": "admin_page_1",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "admin_alarms_1",
+        "type": "ui-template",
+        "z": "cc25d96a5ae42c89",
+        "group": "admin_grp_1",
+        "page": "",
+        "ui": "",
+        "name": "Admin: Alarme",
+        "order": 1,
+        "width": 6,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n  <div class=\"admin-alarms\">\n    <div class=\"admin-banner\" :class=\"locked ? 'is-locked' : 'is-ok'\">\n      {{ locked ? 'STATION GESPERRT: Diebstahl-Alarm aktiv' : 'Kein Alarm, Station offen' }}\n    </div>\n    <div class=\"admin-row\" v-for=\"n in [1, 2, 3, 4]\" :key=\"n\">\n      <span class=\"admin-slot\">Slot {{ n }}</span>\n      <span class=\"admin-state\" :class=\"'st-' + stateOf(n)\">{{ label(n) }}</span>\n      <span class=\"admin-since\">{{ since(n) }}</span>\n      <v-btn size=\"small\" color=\"error\" :disabled=\"!alarmOf(n)\"\n             @click=\"send({ topic: 'admin/reset', payload: n })\">Alarm zuruecksetzen</v-btn>\n    </div>\n    <v-btn block color=\"error\" variant=\"tonal\" :disabled=\"!locked\"\n           @click=\"send({ topic: 'admin/reset', payload: 'all' })\">Alle Alarme zuruecksetzen</v-btn>\n  </div>\n</template>\n\n<script>\nexport default {\n  computed: {\n    data () { return (this.msg && this.msg.payload) || {} },\n    locked () { return !!this.data.locked }\n  },\n  methods: {\n    alarmOf (n) { return (this.data.alarms || {})[n] },\n    stateOf (n) { return (this.data.slots || {})[n] || 'unknown' },\n    label (n) {\n      const s = this.stateOf(n)\n      return { alarm: 'ALARM', occupied: 'belegt', reserved: 'reserviert/Abholung', free: 'frei' }[s] || '?'\n    },\n    since (n) {\n      const a = this.alarmOf(n)\n      return a ? 'seit ' + new Date(a.at).toLocaleTimeString('de-DE') : ''\n    }\n  }\n}\n</script>\n\n<style scoped>\n.admin-alarms { display: flex; flex-direction: column; gap: 10px; width: 100%; }\n.admin-banner { padding: 12px; border-radius: 6px; font-weight: 700; text-align: center; }\n.admin-banner.is-locked { background: #ff5252; color: #fff; }\n.admin-banner.is-ok { background: #e8f5e9; color: #1b5e20; }\n.admin-row { display: grid; grid-template-columns: 70px 1fr 1fr auto; align-items: center; gap: 8px; }\n.admin-slot { font-weight: 600; }\n.admin-state.st-alarm { color: #d32f2f; font-weight: 700; }\n.admin-since { color: #666; font-size: 0.9em; }\n</style>\n",
+        "storeOutMessages": true,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 1240,
+        "y": 640,
+        "wires": [
+            [
+                "fn_smart_logic"
+            ]
+        ]
     }
 ]

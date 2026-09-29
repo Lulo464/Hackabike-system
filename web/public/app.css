@@ -265,6 +265,9 @@ main > .two-col { animation: rise .6s var(--ease) .24s both; }
 .slot[data-state="free"]::before { background: var(--good); }
 .slot[data-state="occupied"]::before { background: var(--accent); }
 .slot[data-state="reserved"]::before { background: var(--warn); }
+.slot[data-state="alarm"]::before { background: var(--crit); }
+.slot[data-state="alarm"] { background: color-mix(in srgb, var(--crit) 10%, var(--surface-2)); }
+.slot[data-state="alarm"] .slot-icon { color: var(--crit-ink); animation: blink 1s steps(2) infinite; }
 .slot[data-state="free"] { background: color-mix(in srgb, var(--good) 7%, var(--surface-2)); }
 .slot.changed { animation: flash .9s var(--ease); }
 @keyframes flash { 0% { transform: scale(.94); } 45% { transform: scale(1.03); } 100% { transform: none; } }

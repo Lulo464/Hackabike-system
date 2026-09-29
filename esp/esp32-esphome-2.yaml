@@ -94,10 +94,14 @@ mqtt:
               size_t b = a == std::string::npos ? a : t.find('"', a + 1);
               if (b != std::string::npos) t = t.substr(a + 1, b - a - 1);
             }
-            // Hintergrund: grün = Slot zugewiesen/gesichert, rot = voll, sonst weiß
+            // Hintergrund: grün = Slot zugewiesen/gesichert/Abholung,
+            // rot = voll, Alarm/gesperrt oder abgelehnt, sonst weiß
+            auto has = [&](const char *s) { return t.find(s) != std::string::npos; };
             int r = 255, g = 255, b = 255;
-            if (t.rfind("Park at", 0) == 0 || t.rfind("Secured", 0) == 0) { r = 0; b = 0; }
-            else if (t.find("Full") != std::string::npos) { g = 0; b = 0; }
+            if (has("Full") || has("ALARM") || has("gesperrt") || has("unbekannt") ||
+                has("Kein Rad") || has("schon")) { g = 0; b = 0; }
+            else if (t.rfind("Park at", 0) == 0 || t.rfind("Secured", 0) == 0 ||
+                     t.rfind("Rad in Slot", 0) == 0) { r = 0; b = 0; }
             id(lcd_show)->execute(t, r, g, b);
     - topic: bikestation/entrance/gate
       then:

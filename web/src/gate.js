@@ -64,12 +64,22 @@ async function open(user, action) {
     return { status: 429, body: { code: 'cooldown', wait, error: `Bitte noch ${wait} s warten.` } };
   }
 
-  if (action === 'park') {
-    const snap = await live.fast();
-    if (snap.fresh && snap.free === 0) {
-      await logEvent(user.id, action, 'full');
-      return { status: 409, body: { code: 'full', error: 'Die Station ist gerade voll.' } };
-    }
+  // Node-RED enforces the same rules; checking here gives the app a clear answer
+  const snap = await live.fast();
+  if (snap.locked) {
+    await logEvent(user.id, action, 'error', 'locked');
+    return { status: 423, body: { code: 'locked', error: 'Die Station ist wegen eines Alarms gesperrt.' } };
+  }
+  const parked = await parkedSlot(user);
+  if (action === 'park' && parked) {
+    return { status: 409, body: { code: 'has_bike', n: parked, error: `Du hast schon ein Rad in Slot ${parked}.` } };
+  }
+  if (action === 'pickup' && !parked) {
+    return { status: 409, body: { code: 'no_bike', error: 'Du hast kein Rad geparkt.' } };
+  }
+  if (action === 'park' && snap.fresh && snap.free === 0) {
+    await logEvent(user.id, action, 'full');
+    return { status: 409, body: { code: 'full', error: 'Die Station ist gerade voll.' } };
   }
 
   const t0 = new Date();
@@ -84,7 +94,7 @@ async function open(user, action) {
       slot = await reservedSlot(user, t0);
     }
   } else {
-    slot = await parkedSlot(user);
+    slot = parked;
   }
   await logEvent(user.id, action, 'opened', slot ? `slot ${slot}` : null);
   return { status: 200, body: { ok: true, action, slot, openSeconds: OPEN_S } };
