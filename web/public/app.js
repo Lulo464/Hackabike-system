@@ -108,8 +108,11 @@ function renderHero(l) {
   $('heroTitle').textContent = title;
   animateNumber($('heroNum'), free);
   $('heroOf').textContent = t('hero.of', { total });
-  $('ringFill').style.strokeDashoffset = String(RING * (1 - share));
-  $('ringFill').style.opacity = share > 0 ? '1' : '0';
+  // the ring fills up as the station fills up; the big number stays "free"
+  const used = total ? (total - free) / total : 0;
+  $('ringFill').style.strokeDashoffset = String(RING * (1 - used));
+  $('ringFill').style.opacity = used > 0 ? '1' : '0';
+  $('heroOcc').textContent = t('hero.occ', { p: Math.round(used * 100) });
   $('heroSub').textContent = l.fresh
     ? t('sub.live', { ago: ago(l.lastUpdate) })
     : l.lastUpdate ? t('sub.stale', { ago: ago(l.lastUpdate) }) : t('sub.waiting');

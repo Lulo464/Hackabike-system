@@ -19,6 +19,7 @@
     'hero.loading': ['Lade Daten …', 'Loading data …', 'Gegevens laden …'],
     'hero.freeTitle': ['Freie Plätze', 'Free spaces', 'Vrije plekken'],
     'hero.of': ['von {total} frei', 'of {total} free', 'van {total} vrij'],
+    'hero.occ': ['{p} % belegt', '{p}% occupied', '{p}% bezet'],
     'pill.offline': ['Sensoren offline', 'Sensors offline', 'Sensoren offline'],
     'pill.full': ['Voll', 'Full', 'Vol'],
     'pill.almost': ['Fast voll', 'Almost full', 'Bijna vol'],

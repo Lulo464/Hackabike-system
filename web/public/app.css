@@ -173,6 +173,8 @@ main > .two-col { animation: rise .6s var(--ease) .24s both; }
 .hero-num.bump { animation: bump .5s var(--spring); }
 @keyframes bump { 0% { transform: scale(.7); opacity: .3; } 100% { transform: none; opacity: 1; } }
 .hero-of { color: var(--ink-2); font-size: .9rem; margin-top: 4px; }
+.hero-occ { color: var(--muted); font-size: .72rem; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .hero-of { font-size: .8rem; } .hero-occ { font-size: .66rem; } }
 .hero-title { font-size: 1.5rem; margin: 8px 0 2px; }
 .hero-sub { margin: 0; color: var(--ink-2); }
 .hero-hint { margin: 8px 0 0; font-size: .88rem; color: var(--muted); }
