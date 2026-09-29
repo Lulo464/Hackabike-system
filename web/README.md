@@ -14,7 +14,9 @@ open and close the gate.
   from the weekday/hour average of the last 6 weeks (recent days weigh more),
   pulled toward the live state for the next ~2 hours.
 - **Accounts**: register / log in (scrypt hashes, session cookie, 30 days).
-  Set `REGISTRATION_CODE` in the compose environment to require a code.
+  Creating an account needs the registration code (`REGISTRATION_CODE`,
+  default `Hack-a-bike` in `docker-compose.yml`) because the dashboard is
+  published on the internet through Pangolin.
 - **Gate from the phone** (press and hold):
   - *Einparken* publishes a tap `{"uid":"APP-<user>"}` on
     `bikestation/entrance/nfc/tap`, so Node-RED reserves a slot and shows it on

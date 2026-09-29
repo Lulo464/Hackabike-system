@@ -8,14 +8,19 @@ broker over WiFi.
 
 ## Stack
 
-| Service    | Image                | Ports          | Purpose                        |
-|------------|----------------------|----------------|--------------------------------|
-| Node-RED   | `nodered/node-red`   | `1880`         | Flow engine + FlowFuse UI      |
-| Mosquitto  | `mosquitto:2`        | `1883`, `9001` | MQTT broker (TCP + WebSocket)  |
+| Service    | Image                | Ports          | Purpose                                         |
+|------------|----------------------|----------------|-------------------------------------------------|
+| Node-RED   | `nodered/node-red`   | `1880`         | Flow engine + FlowFuse UI                       |
+| Mosquitto  | `mosquitto:2`        | `1883`, `9001` | MQTT broker (TCP + WebSocket)                   |
+| Postgres   | `postgres:16-alpine` | `5432`         | Every `bikestation/#` message, minute rollups   |
+| Web        | `./web` (Node 22)    | `8080`         | Mobile dashboard, forecast, gate by phone       |
+| Newt       | `fosrl/newt`         | –              | Pangolin tunnel, **separate compose in `~/newt`** |
 
+- **Mobile dashboard:** `http://<pi>:8080` (see [web/README.md](web/README.md))
 - **Node-RED editor:** `http://<pi>:1880/red/`
-- **Dashboard:** `http://<pi>:1880/dashboard` (see Known Issues)
+- **Node-RED dashboard:** `http://<pi>:1880/dashboard`
 - **MQTT:** `mqtt://<pi>:1883` from the ESP32, `ws://<pi>:9001` from the browser
+- **Postgres:** `psql -h <pi> -U nodered -d bikestation` (password in `docker-compose.yml`)
 
 ## Quick start
 
@@ -49,6 +54,11 @@ dockerfiles/
   nodered/start.sh             installs the dashboard module, then starts Node-RED
 mosquitto/
   config/mosquitto.conf        listeners, persistence, anonymous access (demo)
+postgres/
+  init/01_schema.sql           telemetry table + occupancy views (first start only)
+web/                           mobile dashboard container, see web/README.md
+newt/
+  docker-compose.example.yml   template for the Pangolin tunnel (real file on the Pi)
 nodered/
   settings.js                  /red editor root, credential secret
   flows.json                   generated flow — edit gen_flows.py, not this
@@ -97,9 +107,52 @@ single controller, Pi as server:
 | ADXL345 accelerometer   | I²C  | `0x53`  |
 | WS2812B strip (60 LEDs) | GPIO 8 | —     |
 
+## Remote access
+
+The Pi is reachable from outside the LAN in two ways. Neither is configured
+by `docker compose up` in this repo, because both need secrets.
+
+### Pangolin / Newt - public internet
+
+A **Newt** container connects out to the Pangolin server at
+`https://app.heppner.site` and keeps a tunnel open. Whatever is added as a
+resource for this site in the **Pangolin UI** is then **published on the
+internet** - no port forwarding on the router needed.
+
+- Runs from `~/newt/docker-compose.yml` on the Pi (not in this repo, it holds
+  `NEWT_SECRET`). Template: [`newt/docker-compose.example.yml`](newt/docker-compose.example.yml).
+- Status: `docker logs newt` should show
+  `Tunnel connection to server established successfully!`
+- Targets to enter in Pangolin (both reachable from inside the Newt container):
+  - mobile dashboard: `192.168.91.67:8080`
+  - Node-RED dashboard: `192.168.91.67:1880` - **editor has no login**, see below
+- Which services are actually public is decided in the Pangolin UI, not here.
+
+Because the mobile dashboard is public, **creating an account needs the
+registration code `Hack-a-bike`** (`REGISTRATION_CODE` in
+`docker-compose.yml`). Anyone with an account can open the gate.
+
+### WireGuard - team VPN
+
+The Pi is a WireGuard peer with address **`10.50.10.51`**
+(`ssh group12@10.50.10.51` from a device on the VPN). Config in
+`/etc/wireguard/wg0.conf` (root only, holds the private key, not in git),
+started by `wg-quick@wg0` on boot. It routes only `10.10.10.0/24`,
+`10.20.10.0/24` and `10.50.10.0/24` through the tunnel; the LAN stays
+untouched. After editing the config: `sudo systemctl restart wg-quick@wg0`.
+
 ## Security notes
 
 This is a demo configuration. Before any real deployment:
+
+- [ ] **Services are published on the internet through Pangolin.** Only add
+      the mobile dashboard as a resource, never Mosquitto (`1883`/`9001`) or
+      Postgres (`5432`) - neither has a real password.
+- [ ] **The registration code `Hack-a-bike` is in the repo.** Fine for the
+      hackathon; for anything longer set `REGISTRATION_CODE` in a `.env`
+      on the Pi instead and remove the default.
+- [ ] **Postgres uses the demo password `hackathon2026`**, from
+      `docker-compose.yml`. Override `POSTGRES_PASSWORD` in `.env`.
 
 - [ ] **Mosquitto allows anonymous access.** `allow_anonymous true` in
       `mosquitto/config/mosquitto.conf`. Add a `password_file` and create
@@ -107,7 +160,8 @@ This is a demo configuration. Before any real deployment:
 - [ ] **No broker ACLs.** The commented topic examples are documentation only —
       nothing currently restricts which topics a client may read or write.
 - [ ] **Node-RED has no authentication.** Anyone who can reach port 1880 can
-      edit flows and reach the broker. Add `adminAuth` in `nodered/settings.js`.
+      edit flows and reach the broker - including through Pangolin if 1880 is
+      published there. Add `adminAuth` in `nodered/settings.js`.
 - [ ] **`credentialSecret` is a known placeholder**
       (`nodered/settings.js`). Anyone with it can decrypt `flows_cred.json`.
       Replace it with a random value and keep it out of version control.
@@ -116,27 +170,9 @@ This is a demo configuration. Before any real deployment:
 
 ## Known issues
 
-**The dashboard does not currently load.** `http://<pi>:1880/dashboard` returns
-404 and the FlowFuse UI nodes fail to register:
-
-```
-[ui-page]  Error registering config. No parent ui-base node found for ui-page node
-[ui-group] TypeError: Cannot read properties of null (reading 'register')
-```
-
-Mosquitto and the Node-RED editor (`/red/`, HTTP 200) are unaffected. Four
-likely causes were identified and fixed — Dashboard-1 node type names in the
-generator, a missing `path` on `ui-base`, missing `wires` keys on output-less
-widgets, and a module version bump (1.30.2 → 1.32.0) — and the failure
-persists. The remaining suspect is a `ui-theme` / `ui-base` config-node
-resolution problem.
-
-Regenerate the flow after fixing `gen_flows.py`:
-
-```bash
-python3 gen_flows.py
-docker compose restart nodered
-```
+- **Chip taps do not open the gate.** Node-RED reserves a slot and shows it on
+  the LCD, but nothing publishes to `bikestation/entrance/gate`. Only the
+  mobile dashboard opens it (`open`, then `close` after 8 s).
 
 **Hardware is unsettled.** `docs/Design_v2.svg` and the current documentation
 disagree:

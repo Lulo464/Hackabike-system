@@ -1,0 +1,19 @@
+# Pangolin tunnel client (Newt) - template.
+#
+# The real file lives on the Pi at ~/newt/docker-compose.yml, outside this
+# repo, because it holds the Newt secret. To set it up again:
+#
+#   mkdir -m 700 ~/newt
+#   cp newt/docker-compose.example.yml ~/newt/docker-compose.yml
+#   chmod 600 ~/newt/docker-compose.yml
+#   # fill in NEWT_ID / NEWT_SECRET from the site in the Pangolin UI
+#   cd ~/newt && docker compose up -d
+services:
+  newt:
+    image: fosrl/newt
+    container_name: newt
+    restart: unless-stopped
+    environment:
+      - PANGOLIN_ENDPOINT=https://app.heppner.site
+      - NEWT_ID=<newt id from Pangolin>
+      - NEWT_SECRET=<newt secret from Pangolin>

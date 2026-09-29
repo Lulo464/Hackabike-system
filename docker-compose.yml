@@ -71,8 +71,9 @@ services:
       - PGUSER=${POSTGRES_USER:-nodered}
       - PGPASSWORD=${POSTGRES_PASSWORD:-hackathon2026}
       - MQTT_URL=mqtt://mosquitto:1883
-      # set to require a code when creating an account (empty = open)
-      - REGISTRATION_CODE=${REGISTRATION_CODE:-}
+      # code needed to create an account - the dashboard is reachable from
+      # the internet through Pangolin (see README, "Remote access")
+      - REGISTRATION_CODE=${REGISTRATION_CODE:-Hack-a-bike}
       - GATE_OPEN_SECONDS=8
       - CLEANUP_INTERVAL_MIN=5
     depends_on:
