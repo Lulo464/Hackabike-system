@@ -129,7 +129,8 @@ Chip and app taps take the same path through the flow:
 3. LCD (16x2, ASCII only): `Hallo <Name> / Willkommen!` -> after 2 s
    `Park at Slot N / Gate ist offen` (or `Rad in Slot N / Gute Fahrt!`,
    `Station Full!`) -> after 10 s more `Willkommen! / Bitte scannen`.
-4. The gate opens and closes again after 8 s.
+4. The gate opens and closes again after 20 s. After a pickup it opens once
+   more as soon as the bike has left its slot, so the rider can get out.
 5. Every reservation is a row in `parking_sessions`:
    `reserved -> parked` (bike arrives) `-> done` (bike leaves), or
    `reserved -> expired`. A slot only counts as changed after 5 equal readings

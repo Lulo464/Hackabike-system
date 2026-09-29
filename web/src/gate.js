@@ -3,14 +3,16 @@
 // The app behaves exactly like a chip: it publishes a tap
 // {"uid":"APP-<user>","action":"park"|"pickup"} on bikestation/entrance/nfc/tap.
 // The Node-RED station logic then greets the user on the LCD, reserves a slot
-// (park), opens the gate and closes it after 8 s, and records the parking
-// session. This service only waits briefly to tell the app which slot it got.
+// (park), opens the gate and closes it after 20 s, and records the parking
+// session. This service waits for the station's answer (gate / LCD, as seen by
+// the telemetry ingest) so the app never says "open" when nothing happened.
 const mqtt = require('mqtt');
 const { pool } = require('./db');
 const live = require('./live');
 
 const TAP_TOPIC = 'bikestation/entrance/nfc/tap';
-const OPEN_S = 8; // matches the gate sequence in Node-RED
+const OPEN_S = 20; // matches the gate sequence in Node-RED
+const ANSWER_MS = 3000; // Node-RED answers a tap within a few 100 ms
 const COOLDOWN_S = Number(process.env.GATE_COOLDOWN_SECONDS || 10);
 
 const client = mqtt.connect(process.env.MQTT_URL || 'mqtt://mosquitto:1883', {
@@ -40,6 +42,18 @@ async function reservedSlot(user, t0) {
       AND (reserved_at >= $3 OR expires_at >= $3 + interval '4 minutes')
     ORDER BY reserved_at DESC LIMIT 1`, [user.id, `APP-${user.username}`, t0]);
   return rows[0] ? rows[0].slot : null;
+}
+
+// what the station did after t0: gate opened? latest LCD text?
+async function stationAnswer(t0) {
+  const { rows } = await pool.query(`
+    SELECT topic, payload FROM telemetry
+    WHERE ts >= $1 AND topic IN ('bikestation/entrance/gate', 'bikestation/entrance/oled/display')
+    ORDER BY ts`, [t0]);
+  return {
+    opened: rows.some((r) => r.topic.endsWith('/gate') && r.payload === 'open'),
+    lcd: (rows.filter((r) => r.topic.endsWith('/display')).pop() || {}).payload || null,
+  };
 }
 
 async function parkedSlot(user) {
@@ -86,12 +100,31 @@ async function open(user, action) {
   lastByUser.set(user.id, Date.now());
   await publish(TAP_TOPIC, JSON.stringify({ uid: `APP-${user.username}`, action, source: 'app' }));
 
+  // wait for the station: the gate opens together with the LCD greeting; a
+  // refusal shows its reason on the LCD (after the greeting, at 2 s)
+  let ans = { opened: false, lcd: null };
+  for (let waited = 250; waited <= ANSWER_MS && !ans.opened; waited += 250) {
+    await new Promise((r) => setTimeout(r, 250));
+    ans = await stationAnswer(t0);
+    if (ans.lcd && !ans.opened && waited >= 2500) break;   // answered, but refused
+  }
+  if (!ans.opened) {
+    lastByUser.delete(user.id);   // nothing happened: let the user retry right away
+    if (!ans.lcd) {
+      await logEvent(user.id, action, 'error', 'no answer');
+      return { status: 504, body: { code: 'no_answer', error: 'Die Station hat nicht reagiert. Bitte nochmal versuchen.' } };
+    }
+    const text = ans.lcd.replace(/\s+/g, ' ').trim();
+    await logEvent(user.id, action, 'error', text);
+    return { status: 409, body: { code: 'refused', text, error: `Abgelehnt: ${text}` } };
+  }
+
   let slot = null;
   if (action === 'park') {
-    // Node-RED looks the user up and writes the session within a few 100 ms
-    for (let i = 0; i < 10 && slot === null; i++) {
-      await new Promise((r) => setTimeout(r, 250));
+    // Node-RED writes the session right after opening
+    for (let i = 0; i < 8 && slot === null; i++) {
       slot = await reservedSlot(user, t0);
+      if (slot === null) await new Promise((r) => setTimeout(r, 250));
     }
   } else {
     slot = parked;

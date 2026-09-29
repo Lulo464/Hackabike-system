@@ -175,6 +175,8 @@
     'err.full': ['Die Station ist gerade voll.', 'The station is full right now.', 'Het station is nu vol.'],
     'err.locked': ['Die Station ist wegen eines Alarms gesperrt.', 'The station is locked due to an alarm.', 'Het station is geblokkeerd door een alarm.'],
     'err.has_bike': ['Du hast schon ein Rad in Slot {n}.', 'You already have a bike in slot {n}.', 'Je hebt al een fiets op plek {n}.'],
+    'err.no_answer': ['Die Station hat nicht reagiert. Bitte nochmal versuchen.', 'The station did not respond. Please try again.', 'Het station reageerde niet. Probeer het opnieuw.'],
+    'err.refused': ['Abgelehnt: {text}', 'Refused: {text}', 'Geweigerd: {text}'],
     'err.no_bike': ['Du hast kein Rad geparkt.', 'You have no bike parked.', 'Je hebt geen fiets gestald.'],
     'err.auth_required': ['Bitte zuerst anmelden.', 'Please log in first.', 'Log eerst in.'],
     'err.rate_limited': ['Zu viele Versuche. Bitte in ein paar Minuten erneut probieren.', 'Too many attempts. Please try again in a few minutes.', 'Te veel pogingen. Probeer het over een paar minuten opnieuw.'],
