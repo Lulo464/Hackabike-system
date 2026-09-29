@@ -1,0 +1,17 @@
+<section id="hardware" data-transition="fade" style="background:#12201B; color:#EEF3EC; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:48px">
+<div style="display:flex; flex-direction:column; gap:16px">
+<p style="font-size:28px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:#3DDC84">Technical implementation</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:72px; font-weight:700; line-height:1.1">Hardware</h2>
+</div>
+<table style="font-size:30px; color:#EEF3EC; width:1664px">
+<tr><th style="width:26%; color:#3DDC84">Part</th><th style="width:34%; color:#3DDC84">Model</th><th style="width:40%; color:#3DDC84">Job</th></tr>
+<tr><td>Server</td><td>Raspberry Pi 4 (4 GB)</td><td>broker, logic, database, web, Wi-Fi AP</td></tr>
+<tr><td>Controllers</td><td>2 × ESP32 DevKit</td><td>sensors, LEDs, entrance</td></tr>
+<tr><td>Slot sensors</td><td>4 × Grove Ultrasonic</td><td>bike present, every 200 ms</td></tr>
+<tr><td>Slot lights</td><td>WS2812B LED strip</td><td>free · occupied · reserved · alarm</td></tr>
+<tr><td>Access</td><td>PN532 NFC reader</td><td>chip taps</td></tr>
+<tr><td>Display</td><td>Grove LCD RGB 16×2</td><td>greeting, slot, colour-coded status</td></tr>
+<tr><td>Gate</td><td>Tower Pro MG90S servo</td><td>opens and closes the entrance</td></tr>
+</table>
+<aside>All parts are cheap and off the shelf. Firmware is ESPHome, so every ESP is described in one readable YAML file instead of custom C code.</aside>
+</section>

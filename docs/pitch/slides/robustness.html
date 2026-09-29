@@ -1,0 +1,33 @@
+<section id="robustness" data-transition="fade" style="background:#12201B; color:#EEF3EC; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:56px">
+<div style="display:flex; flex-direction:column; gap:16px">
+<p style="font-size:28px; font-weight:600; letter-spacing:4px; text-transform:uppercase; color:#3DDC84">Technical implementation</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:72px; font-weight:700; line-height:1.1">Built for the real world</h2>
+</div>
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:28px">
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">Debounced sensors</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">Median filter on the ESP, 5 equal readings in Node-RED.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">No echo ≠ empty</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">A broken sensor reports 999 and is ignored, never "bike gone".</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">State survives restarts</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">Alarms and reservations are stored on disk; a reboot cannot unlock.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">Honest app feedback</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">The app waits for the station's answer before it says "open".</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">Isolated ESP network</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">The ESPs reach the broker and nothing else.</p>
+</div>
+<div style="display:flex; flex-direction:column; gap:10px; background:#1A2E26; border-radius:20px; padding:36px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif; font-size:34px; font-weight:700; color:#3DDC84">Load split</h3>
+<p style="font-size:26px; line-height:1.4; color:#C9D6CE">Two ESPs: every slot reports every 200 ms instead of every second.</p>
+</div>
+</div>
+<aside>This is what "professional and stable" means for us. Each card is a problem we actually hit and fixed: flickering sensors, a sensor without echo, a lost tap during a restart, and slow updates with one ESP.</aside>
+</section>

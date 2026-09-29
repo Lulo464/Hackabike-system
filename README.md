@@ -189,7 +189,7 @@ docker compose exec mosquitto mosquitto_pub -t bikestation/entrance/gate -m 90
 ├── postgres/                   database init script           → postgres/README.md
 ├── dockerfiles/                images for Node-RED and Mosquitto
 ├── newt/                       template for the Pangolin tunnel
-├── docs/                       original hackathon plan and design drawing
+├── docs/                       original plan, design drawing, pitch deck → docs/pitch/
 ├── gen_flows.py                outdated flow generator – do not run
 └── version prototype/          separate Next.js dashboard prototype (not deployed)
 ```
