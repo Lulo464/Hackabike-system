@@ -47,9 +47,9 @@ permission and the whole station locks down.
 
 | Part | What it does | Docs |
 |---|---|---|
-| **Mosquitto** | MQTT broker, the bus everything talks over | – |
+| **Mosquitto** | MQTT broker, the bus everything talks over | [mosquitto/README.md](mosquitto/README.md) |
 | **Node-RED** | Station logic (access, reservations, alarm), control-room dashboard | [Station logic](#station-logic) |
-| **Postgres** | Accounts, parking sessions, all telemetry | – |
+| **Postgres** | Accounts, parking sessions, all telemetry | [postgres/README.md](postgres/README.md) |
 | **web** | Mobile dashboard: free slots, forecast, "open gate" by phone | [web/README.md](web/README.md) |
 | **ESP32 ×2** | Sensors, LEDs, NFC, LCD and gate (ESPHome) | [esp/README.md](esp/README.md) |
 | **Wi-Fi AP** | The Pi runs its own network for the ESPs | [ap/README.md](ap/README.md) |
@@ -185,8 +185,8 @@ docker compose exec mosquitto mosquitto_pub -t bikestation/entrance/gate -m 90
 ├── web/                        mobile dashboard              → web/README.md
 ├── esp/                        ESP32 firmware (ESPHome)      → esp/README.md
 ├── ap/                         Wi-Fi access point for the ESPs → ap/README.md
-├── mosquitto/config/           broker config (listeners, persistence)
-├── postgres/init/              telemetry table + views, runs on first start
+├── mosquitto/                  MQTT broker config             → mosquitto/README.md
+├── postgres/                   database init script           → postgres/README.md
 ├── dockerfiles/                images for Node-RED and Mosquitto
 ├── newt/                       template for the Pangolin tunnel
 ├── docs/                       original hackathon plan and design drawing
