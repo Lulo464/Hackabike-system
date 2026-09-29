@@ -58,5 +58,31 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # mobile dashboard, forecast and app access to the gate - reads only the db,
+  # publishes to MQTT only to open/close the gate
+  web:
+    build:
+      context: ./web
+    container_name: bikestation-web
+    environment:
+      - TZ=Europe/Berlin
+      - PGHOST=postgres
+      - PGDATABASE=bikestation
+      - PGUSER=${POSTGRES_USER:-nodered}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-hackathon2026}
+      - MQTT_URL=mqtt://mosquitto:1883
+      # set to require a code when creating an account (empty = open)
+      - REGISTRATION_CODE=${REGISTRATION_CODE:-}
+      - GATE_OPEN_SECONDS=8
+      - CLEANUP_INTERVAL_MIN=5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
 volumes:
   postgres_data:

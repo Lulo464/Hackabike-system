@@ -1,0 +1,16 @@
+{
+  "name": "bikestation-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mobile dashboard, forecast and app gate access for the bikestation",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "mqtt": "5.16.0",
+    "pg": "8.23.0"
+  }
+}
