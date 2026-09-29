@@ -1,5 +1,12 @@
 # EcoHub Smart Bikestation — Node-RED Flow (v2)
 
+> [!IMPORTANT]
+> This is a **design prototype**, not the flow the station runs. Importing it
+> **replaces** the bikestation tab and removes the station logic (access
+> control, reservations, theft alarm). The live flow is
+> [`nodered/flows.json`](../../nodered/flows.json). Several topics below
+> (`system/cpu_temp`, `environment/*`) are not published by the station.
+
 Redesigned Node-RED Dashboard 2.0 flow that matches the look & feel of the EcoHub web dashboard (dark theme, emerald + cyan accents, KPI cards, rich bike cards, Pi health, environment, charts, activity log).
 
 ## Import

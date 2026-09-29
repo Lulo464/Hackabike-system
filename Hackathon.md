@@ -1,5 +1,12 @@
 # Smart Bikestation — Hackathon
 
+> [!NOTE]
+> This is the **original plan** from the start of the hackathon. The station as
+> built differs: two ESP32 DevKits instead of one ESP32-S3, ultrasonic sensors
+> instead of VL53L1X, a 16×2 RGB LCD instead of the OLED, no vibration sensors,
+> a Raspberry Pi 4, and a different MQTT topic scheme. For the current state see
+> the [main README](README.md) and [esp/README.md](esp/README.md).
+
 ## Architecture
 
 ```

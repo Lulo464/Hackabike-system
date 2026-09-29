@@ -1,30 +1,28 @@
-# Hackabike AP — Pi as WiFi access point for the ESP32
+# Wi-Fi access point for the ESP32s
 
-The ESP32 does **not** join the school LAN. The Pi hosts its own WiFi network
-on `wlan0`; the ESP32 joins that and reaches Mosquitto at a fixed address.
+The ESP32s do **not** join the school LAN. The Pi runs its own Wi-Fi network
+on `wlan0`, the ESPs join it and reach Mosquitto at a fixed address.
 
 ```
-  school LAN   eth0    192.168.91.67     laptop, Docker ports
-  Hackabike AP wlan0   192.168.50.1      ESP32-S3, MQTT only
-  mosquitto    0.0.0.0:1883             answers on both interfaces
+  school LAN     eth0    192.168.91.67    laptops, dashboards, SSH
+  Hackabike AP   wlan0   192.168.50.1     ESP32s, MQTT only
+  Mosquitto      0.0.0.0:1883             answers on both
 ```
 
-The two segments are independent — no bridging, no NAT, no IP forwarding. The
-ESP32 gets **no route to the school network**, which is deliberate: it can only
-reach the broker.
+The two networks are separate: no bridging, no NAT, no IP forwarding. The ESPs
+get **no route to the school network** on purpose. All they can reach is the broker.
 
-## Details
+## Settings
 
-| Setting     | Value            |
-|-------------|------------------|
-| SSID        | `Hackabike-ESP`  |
-| Security    | WPA2-PSK         |
-| Passphrase  | `hackabike2026`  |
-| Band        | 2.4 GHz only (ESP32-S3 has no 5 GHz) |
-| Channel     | 6                 |
-| AP address  | `192.168.50.1/24`|
-| DHCP range  | `192.168.50.100`–`.150` (standalone `dnsmasq`) |
-| Broker URL  | `mqtt://192.168.50.1:1883` |
+| Setting | Value |
+|---|---|
+| SSID | `Hackabike-ESP` |
+| Security | WPA2-PSK, AES only |
+| Password | `hackabike2026` |
+| Band / channel | 2.4 GHz, channel 6 (the ESP32 has no 5 GHz) |
+| AP address | `192.168.50.1/24` |
+| DHCP range | `192.168.50.100`–`150` (standalone `dnsmasq`) |
+| Broker | `mqtt://192.168.50.1:1883` |
 
 ## Install
 
@@ -32,126 +30,124 @@ reach the broker.
 ./ap/install-ap.sh
 ```
 
-Unblocks the radio, enables WiFi, creates the NM profile, writes the netplan
-file, and activates the AP. Idempotent — safe to re-run.
+This unblocks the radio, enables Wi-Fi, creates the NetworkManager profile,
+writes the netplan file, sets up `dnsmasq` and starts the AP. It is safe to
+run again.
 
-## Verify
+## Check that it works
 
 ```bash
-# AP is broadcasting
-sudo iw dev wlan0 info | grep -E 'ssid|type|channel'
+# the AP is broadcasting
+sudo /usr/sbin/iw dev wlan0 info | grep -E 'ssid|type|channel'
+#     ssid Hackabike-ESP
+#     type AP
+#     channel 6 (2437 MHz), width: 20 MHz
 
-# both networks coexist
+# both networks are up
 ip -br addr show wlan0 eth0
 
-# broker answers on the AP address (this is the ESP32's path)
-cd ~/bikestation
-sudo docker compose exec mosquitto mosquitto_pub \
-  -h 192.168.50.1 -t 'bikestation/system/status' -m '{"status":"online"}'
+# it advertises pure WPA2 (not "WPA1 WPA2")
+nmcli -f SSID,SECURITY,RSN-FLAGS dev wifi list | grep Hackabike
+
+# the broker answers on the AP address (the ESPs' path)
+docker compose exec mosquitto mosquitto_pub -h 192.168.50.1 -t bikestation/test -m hello
 ```
 
-Expected from `iw dev wlan0 info`:
-
-```
-    ssid Hackabike-ESP
-    type AP
-    channel 6 (2437 MHz), width: 20 MHz
-```
-
-## Gotchas that cost time on this Pi
-
-**1. Mixed-mode WPA killed the ESP32 until pinned to WPA2/AES-only.** NetworkManager's
-`wpa_supplicant` AP mode advertises mixed `WPA1 WPA2` (pair/group `tkip ccmp`) by
-default. The ESP32's ESP-IDF stack rejects that beacon with reason 201
-*"No AP found in auth mode threshold"* — the laptop connects fine (it accepts
-mixed mode), the ESP never gets on the network. Fix: `install-ap.sh` forces
-`wifi-sec.proto rsn` + `group ccmp` + `pairwise ccmp`, so the beacon advertises
-pure WPA2 (`pair_ccmp group_ccmp`). Verify with:
-`nmcli -f SSID,SECURITY,RSN-FLAGS dev wifi list | grep Hackabike`.
-
-**2. `nmcli radio wifi` was `disabled`.** This — not rfkill, not the driver —
-was what kept `wlan0` in state `unavailable`. `rfkill` reported `soft=1` and
-the interface looked dead, but the actual switch was in NetworkManager:
-
-```
-nmcli radio wifi          -> disabled
-sudo nmcli radio wifi on  -> wlan0:connecting
-```
-
-If the AP won't come up, check this first.
-
-**3. A stale netplan block pinned `wlan0` to a client profile.** The image had
-a `netplan-wlan0-Printers` entry with a WPA passphrase for a network called
-"Printers" that didn't exist. It kept NM managing `wlan0` as a station and
-blocked AP activation. Removed; the `netplan-wlan0-Printers` profile was
-deleted too.
-
-**4. `ipv4.method shared` is wrong here.** It made NM run its built-in dnsmasq,
-but it also gave `wlan0` a default route and assigned `10.42.0.1/24` instead
-of the intended `192.168.50.1/24`. The AP went live under the wrong address.
-The fix is a **static** address on `wlan0` plus a **standalone `dnsmasq`**
-service for DHCP. This is what `install-ap.sh` does now.
-
-**5. nmcli `wifi.band bg` is required** when `wifi.channel` is set ("channel
-requires setting band"). But the **netplan** file must NOT have a `band:` key —
-on this release netplan rejects both `bg` and `2g`. And netplan has **no way to
-express the WPA2-only cipher pin** (no `proto`/`group`/`pairwise` keys), so the
-cipher settings live only in the NM profile — `install-ap.sh` writes them there,
-not in netplan.
-
-**6. dnsmasq `bind-interfaces` and `bind-dynamic` are mutually exclusive.**
-Use `bind-dynamic` for an AP: `wlan0` has no carrier until a client associates,
-so the address isn't bound when dnsmasq starts. Also, `log-facility=/dev/stdout`
-makes the systemd unit fail with `NOTIMPLEMENTED` — omit it and rely on syslog
-(`journalctl -u dnsmasq`).
-
-**7. `iw` is at `/usr/sbin/iw`**, not on the unprivileged PATH.
-
-## Persistence
-
-Three layers, deliberately:
-
-- `nmcli` profile `hackabike-ap` — `connection.autoconnect yes`, static
-  `192.168.50.1/24`, `wifi.mode ap`, and the **WPA2-AES-only cipher pin**
-  (`proto rsn`, `group ccmp`, `pairwise ccmp`). This is the only layer that
-  carries the cipher pin — netplan cannot express it.
-- `/etc/netplan/90-hackabike-ap.yaml` — keeps the netplan renderer from
-  reverting `wlan0` to something else on reboot.
-- `dnsmasq` service with `/etc/dnsmasq.d/hackabike-ap.conf` — DHCP for the AP
-  subnet, enabled at boot.
-
-All three are installed by `install-ap.sh`.
-
-> **netplan sync quirk:** on this image, restarting NetworkManager made netplan
-> auto-sync the AP profile into `/etc/netplan/90-NM-<uuid>.yaml` as a second
-> connection (`netplan-wlan0-Hackabike-ESP`) with `ipv4.method shared` and
-> **no cipher pin**. If both profiles exist at boot, `netplan-wlan0-…` can win
-> `wlan0`, reintroducing mixed-mode WPA and breaking the ESP32. After a reinstall
-> or reboot, confirm only the `hackabike-ap` profile is active and that the AP
-> still advertises `WPA2` (not `WPA1 WPA2`); delete any auto-synced duplicate
-> with `sudo nmcli con delete netplan-wlan0-Hackabike-ESP`.
-
-## Rollback
+## Uninstall
 
 ```bash
 sudo ./ap/remove-ap.sh
 ```
 
-Downs the AP, deletes the NM profile, removes the netplan file, deletes the
-dnsmasq config and restarts the service. `eth0` is untouched.
+This takes the AP down and removes the NetworkManager profile, the netplan
+file and the dnsmasq config. `eth0` is not touched.
 
-## Manual notes
+## How it stays up after a reboot
 
-- `iw` is not on the unprivileged PATH on this image. Use `sudo /usr/sbin/iw`.
-- The Pi 4's WiFi and Ethernet share a single antenna and can't both saturate.
-  Irrelevant at this scale, but it explains why the AP is limited to a handful
-  of clients.
-- `txpower 31 dBm` is regulatory-limited; don't raise it.
-- **No internet to the ESP32, by design.** No NAT or IP forwarding is
-  configured for the AP subnet, so a compromised ESP32 cannot reach the school
-  LAN. If it ever needs internet (OTA, NTP), add a MASQUERADE rule for
-  `192.168.50.0/24` — the Pi already has IP forwarding enabled.
-- The `esp32-esphome.yaml` and its `!include` scripts are **not
-  machine-verified** (ESPHome wasn't installed to run `esphome config`). The
-  hardware section — especially the I2C topology — still depends on decisions
-  from `docs/Hackathon.md` (see the Known Issues in the root README).
+Three layers, all installed by `install-ap.sh`:
+
+| Layer | What it does |
+|---|---|
+| NetworkManager profile `hackabike-ap` | autoconnect, static `192.168.50.1/24`, AP mode, and the **WPA2-AES-only pin** (`proto rsn`, `group ccmp`, `pairwise ccmp`). Only this layer can hold the pin. |
+| `/etc/netplan/90-hackabike-ap.yaml` | stops netplan from switching `wlan0` back on reboot |
+| `dnsmasq` with `/etc/dnsmasq.d/hackabike-ap.conf` | DHCP for the AP network, enabled at boot |
+
+## Troubleshooting
+
+These cost real time on this Pi. Check them in this order.
+
+<details>
+<summary><b>The ESP32 never connects, laptops do</b>: mixed WPA mode</summary>
+
+NetworkManager's AP mode advertises mixed `WPA1 WPA2` (`tkip ccmp`) by default.
+The ESP32 rejects that beacon with reason 201, *"No AP found in auth mode
+threshold"*. Laptops accept mixed mode, so they connect fine.
+
+`install-ap.sh` pins the profile to `wifi-sec.proto rsn`, `group ccmp` and
+`pairwise ccmp`. Check with
+`nmcli -f SSID,SECURITY,RSN-FLAGS dev wifi list | grep Hackabike`.
+</details>
+
+<details>
+<summary><b>A second, unpinned profile appears after a restart</b>: netplan sync</summary>
+
+Restarting NetworkManager can make netplan copy the AP profile into
+`/etc/netplan/90-NM-<uuid>.yaml` as `netplan-wlan0-Hackabike-ESP`, with
+`ipv4.method shared` and **without the cipher pin**. If that one wins `wlan0`,
+mixed-mode WPA is back and the ESPs drop off.
+
+Remove it: `sudo nmcli con delete netplan-wlan0-Hackabike-ESP`.
+</details>
+
+<details>
+<summary><b><code>wlan0</code> stays "unavailable"</b>: Wi-Fi radio switched off</summary>
+
+Not rfkill, not the driver: the switch is in NetworkManager.
+
+```
+nmcli radio wifi          -> disabled
+sudo nmcli radio wifi on  -> wlan0: connecting
+```
+</details>
+
+<details>
+<summary><b>The AP comes up with <code>10.42.0.1</code></b>: <code>ipv4.method shared</code></summary>
+
+`shared` makes NetworkManager run its own dnsmasq, but it also gives `wlan0` a
+default route and the address `10.42.0.1/24`. Use a **static** address plus the
+**standalone dnsmasq** service instead. `install-ap.sh` does this.
+</details>
+
+<details>
+<summary><b><code>wlan0</code> keeps acting as a client</b>: leftover netplan entry</summary>
+
+The image had a `netplan-wlan0-Printers` entry for a network that did not
+exist. It kept `wlan0` in station mode. It has been removed. Look for similar
+leftovers with `nmcli con show`.
+</details>
+
+<details>
+<summary><b>Configuration errors</b>: nmcli, netplan, dnsmasq</summary>
+
+- **nmcli:** needs `wifi.band bg` as soon as `wifi.channel` is set.
+- **netplan:** must have **no** `band:` key, because this release rejects both
+  `bg` and `2g`. netplan also cannot express the cipher pin, so it lives only
+  in the NetworkManager profile.
+- **dnsmasq:** `bind-interfaces` and `bind-dynamic` exclude each other. Use
+  `bind-dynamic`, because `wlan0` has no address until a client joins.
+- **dnsmasq:** `log-facility=/dev/stdout` makes the unit fail with
+  `NOTIMPLEMENTED`. Leave it out and read `journalctl -u dnsmasq`.
+</details>
+
+## Notes
+
+- `iw` is at `/usr/sbin/iw` and not on the normal user's PATH.
+- On the Pi 4, Wi-Fi and Ethernet share one antenna. That is fine for a
+  handful of ESPs.
+- `txpower 31 dBm` is the legal limit. Don't raise it.
+- **No internet for the ESPs, on purpose.** If they ever need it (NTP, online
+  OTA), add a MASQUERADE rule for `192.168.50.0/24`. IP forwarding is already
+  enabled on the Pi.
+- The ESPHome files in this folder (`esp32-esphome.yaml`, `publish-*.yaml`,
+  `handle-led.yaml`) are from the **original single ESP32-S3 plan** and were
+  never used. The current firmware is in [`../esp`](../esp/README.md).
