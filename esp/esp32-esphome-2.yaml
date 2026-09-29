@@ -1,5 +1,5 @@
 # ESP 2 (ESP32 DevKit): Ultrasonic Slot 3/4 + RFID-Leser HW-147 (PN532, I2C)
-# + Grove-LCD RGB Backlight (I2C) + Servo Tower Pro MG90S fuers Gate (D25) + MQTT
+# + Grove-LCD RGB Backlight (I2C) + Servo Tower Pro MG90S fuers Gate (D27) + MQTT
 # (kein LED-Strip, den steuert ESP 1)
 esphome:
   name: bikeslot-2
@@ -203,12 +203,12 @@ script:
           reg(0x62, 0x03, green);
           reg(0x62, 0x02, blue);
 
-# Gate-Servo Tower Pro MG90S an D25: 0° ~ 0,5 ms, 180° ~ 2,4 ms bei 50 Hz.
+# Gate-Servo Tower Pro MG90S an D27: 0° ~ 0,5 ms, 180° ~ 2,4 ms bei 50 Hz.
 # auto_detach_time schaltet das Signal nach der Bewegung ab -> kein Zittern, weniger Strom.
 output:
   - platform: ledc
     id: gate_pwm
-    pin: GPIO25
+    pin: GPIO27
     frequency: 50 Hz
 
 servo:

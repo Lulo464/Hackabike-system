@@ -36,7 +36,7 @@ D21 und D23 sind frei.
 | | DIP-Schalter | SW1 = ON, SW2 = OFF | I2C-Modus |
 | Grove-LCD RGB Backlight | SDA / SCL | D21 / D22 | gleicher I2C-Bus, Adressen 0x3E (Text) + 0x62 (RGB) |
 | | VCC / GND | 5V (VIN) / GND | an SDA duerfen max. ca. 3,6 V anliegen, vorher messen |
-| Servo MG90S (Gate) | Signal (orange) | D25 | |
+| Servo MG90S (Gate) | Signal (orange) | D27 | |
 | | + (rot) / - (braun) | 5V / GND | besser eigenes 5V-Netzteil (GND verbinden), sonst Elko 470 uF am Servo |
 
 Nach dem Flashen oder einem Reset haengt der PN532, bis ESP 2 einmal ganz stromlos war
