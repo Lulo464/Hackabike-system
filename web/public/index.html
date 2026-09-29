@@ -32,12 +32,20 @@
       <span class="brand-mark"><svg><use href="#i-bike"/></svg></span>
       <div>
         <div class="brand-name">Bikestation</div>
-        <div class="brand-sub"><span class="pulse" id="connDot"></span><span id="connText">Verbinde …</span></div>
+        <div class="brand-sub"><span class="pulse" id="connDot"></span><span id="connText" data-i18n="conn.connecting">Verbinde …</span></div>
       </div>
     </div>
-    <button class="account-btn" id="accountBtn" type="button" aria-haspopup="dialog">
-      <svg><use href="#i-user"/></svg><span id="accountLabel">Anmelden</span>
-    </button>
+    <div class="top-actions">
+      <div class="lang">
+        <button class="lang-btn" id="langBtn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="lang.label">
+          <span class="flag" id="langFlag"></span><span class="lang-code" id="langCode"></span>
+        </button>
+        <div class="lang-menu" id="langMenu" role="menu" hidden></div>
+      </div>
+      <button class="account-btn" id="accountBtn" type="button" aria-haspopup="dialog">
+        <svg><use href="#i-user"/></svg><span id="accountLabel">Anmelden</span>
+      </button>
+    </div>
   </header>
 
   <main>
@@ -66,31 +74,31 @@
       <div class="access-guest" id="accessGuest">
         <div class="access-icon"><svg><use href="#i-phone"/></svg></div>
         <div>
-          <h2>Gate per Handy öffnen</h2>
-          <p>Kein Chip dabei? Mit einem Konto öffnest du das Gate direkt hier.</p>
+          <h2 data-i18n="access.title">Gate per Handy öffnen</h2>
+          <p data-i18n="access.text">Kein Chip dabei? Mit einem Konto öffnest du das Gate direkt hier.</p>
         </div>
         <div class="access-actions">
-          <button class="btn primary" type="button" data-auth="login">Anmelden</button>
-          <button class="btn ghost" type="button" data-auth="register">Registrieren</button>
+          <button class="btn primary" type="button" data-auth="login" data-i18n="account.login">Anmelden</button>
+          <button class="btn ghost" type="button" data-auth="register" data-i18n="access.register">Registrieren</button>
         </div>
       </div>
 
       <div class="access-user" id="accessUser" hidden>
         <div class="access-head">
-          <h2>Hallo, <span id="userName"></span></h2>
-          <button class="link" type="button" id="logoutBtn">Abmelden</button>
+          <h2><span data-i18n="access.hello">Hallo,</span> <span id="userName"></span></h2>
+          <button class="link" type="button" id="logoutBtn" data-i18n="access.logout">Abmelden</button>
         </div>
-        <p class="muted small">Zum Öffnen gedrückt halten, damit das Gate nicht aus Versehen aufgeht.</p>
+        <p class="muted small" data-i18n="access.hold">Zum Öffnen gedrückt halten, damit das Gate nicht aus Versehen aufgeht.</p>
         <div class="gate-buttons">
           <button class="hold-btn park" type="button" data-action="park">
             <span class="hold-fill"></span>
             <svg><use href="#i-in"/></svg>
-            <span class="hold-label"><b>Einparken</b><small>reserviert einen Slot</small></span>
+            <span class="hold-label"><b data-i18n="btn.park">Einparken</b><small data-i18n="btn.parkSub">reserviert einen Slot</small></span>
           </button>
           <button class="hold-btn pickup" type="button" data-action="pickup">
             <span class="hold-fill"></span>
             <svg><use href="#i-out"/></svg>
-            <span class="hold-label"><b>Abholen</b><small>öffnet nur das Gate</small></span>
+            <span class="hold-label"><b data-i18n="btn.pickup">Abholen</b><small data-i18n="btn.pickupSub">öffnet nur das Gate</small></span>
           </button>
         </div>
 
@@ -118,7 +126,7 @@
     <!-- 3. Slots -->
     <section class="card">
       <div class="card-head">
-        <h2>Stellplätze</h2>
+        <h2 data-i18n="slots.title">Stellplätze</h2>
         <span class="muted small" id="slotsAge"></span>
       </div>
       <div class="slots" id="slots">
@@ -130,7 +138,7 @@
     <!-- 4. Forecast -->
     <section class="card forecast">
       <div class="card-head">
-        <h2><svg class="h-icon"><use href="#i-chart"/></svg>Erwartete Auslastung</h2>
+        <h2><svg class="h-icon"><use href="#i-chart"/></svg><span data-i18n="fc.title">Erwartete Auslastung</span></h2>
       </div>
       <div class="insights" id="insights"></div>
       <div class="seg" role="tablist" id="dayTabs"></div>
@@ -139,13 +147,13 @@
         <div class="tooltip" id="tooltip" hidden></div>
       </div>
       <div class="legend">
-        <span><i class="sw sw-measured"></i>Gemessen</span>
-        <span><i class="sw sw-forecast"></i>Prognose</span>
-        <span><i class="sw sw-now"></i>Jetzt</span>
+        <span><i class="sw sw-measured"></i><span data-i18n="legend.measured">Gemessen</span></span>
+        <span><i class="sw sw-forecast"></i><span data-i18n="legend.forecast">Prognose</span></span>
+        <span><i class="sw sw-now"></i><span data-i18n="legend.now">Jetzt</span></span>
       </div>
       <p class="muted small" id="forecastNote"></p>
       <details class="table-view">
-        <summary>Als Tabelle anzeigen</summary>
+        <summary data-i18n="fc.table">Als Tabelle anzeigen</summary>
         <div id="forecastTable"></div>
       </details>
     </section>
@@ -153,11 +161,11 @@
     <!-- 5. Activity + system -->
     <div class="two-col">
       <section class="card">
-        <div class="card-head"><h2>Letzte Aktivität</h2></div>
-        <ul class="activity" id="activity"><li class="muted">Noch nichts passiert.</li></ul>
+        <div class="card-head"><h2 data-i18n="act.title">Letzte Aktivität</h2></div>
+        <ul class="activity" id="activity"><li class="muted" data-i18n="act.none">Noch nichts passiert.</li></ul>
       </section>
       <section class="card">
-        <div class="card-head"><h2><svg class="h-icon"><use href="#i-db"/></svg>System</h2></div>
+        <div class="card-head"><h2><svg class="h-icon"><use href="#i-db"/></svg><span data-i18n="sys.title">System</span></h2></div>
         <div class="devices" id="devices"></div>
         <dl class="stats" id="stats"></dl>
       </section>
@@ -168,34 +176,35 @@
     <form method="dialog" class="sheet-inner" id="authForm" novalidate>
       <div class="sheet-grip"></div>
       <div class="seg auth-tabs" role="tablist">
-        <button type="button" role="tab" data-mode="login">Anmelden</button>
-        <button type="button" role="tab" data-mode="register">Registrieren</button>
+        <button type="button" role="tab" data-mode="login" data-i18n="account.login">Anmelden</button>
+        <button type="button" role="tab" data-mode="register" data-i18n="access.register">Registrieren</button>
       </div>
       <h2 id="authTitle">Willkommen zurück</h2>
       <label class="field" data-only="register">
-        <span>Anzeigename</span>
-        <input name="displayName" autocomplete="nickname" maxlength="40" placeholder="z. B. Luca">
+        <span data-i18n="auth.displayName">Anzeigename</span>
+        <input name="displayName" autocomplete="nickname" maxlength="40" placeholder="z. B. Luca" data-i18n-placeholder="auth.displayNamePh">
       </label>
       <label class="field">
-        <span>Benutzername</span>
+        <span data-i18n="auth.username">Benutzername</span>
         <input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
       </label>
       <label class="field">
-        <span>Passwort</span>
+        <span data-i18n="auth.password">Passwort</span>
         <input name="password" type="password" autocomplete="current-password" required minlength="8">
       </label>
       <label class="field" data-only="register" id="codeField" hidden>
-        <span>Registrierungscode</span>
+        <span data-i18n="auth.code">Registrierungscode</span>
         <input name="code" autocomplete="off">
       </label>
       <p class="form-error" id="authError" role="alert"></p>
       <button class="btn primary wide" type="submit" id="authSubmit">Anmelden</button>
-      <button class="btn ghost wide" type="button" id="authCancel">Abbrechen</button>
+      <button class="btn ghost wide" type="button" id="authCancel" data-i18n="auth.cancel">Abbrechen</button>
     </form>
   </dialog>
 
   <div class="toast" id="toast" role="status" hidden></div>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

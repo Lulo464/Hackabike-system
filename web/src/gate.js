@@ -46,15 +46,15 @@ async function reservedSlotSince(t0) {
 
 async function open(user, action) {
   if (!['park', 'pickup'].includes(action)) {
-    return { status: 400, body: { error: 'Unbekannte Aktion.' } };
+    return { status: 400, body: { code: 'bad_action', error: 'Unbekannte Aktion.' } };
   }
   if (!client.connected) {
-    return { status: 503, body: { error: 'Keine Verbindung zum MQTT-Broker.' } };
+    return { status: 503, body: { code: 'mqtt_down', error: 'Keine Verbindung zum MQTT-Broker.' } };
   }
   const last = lastByUser.get(user.id) || 0;
   const wait = Math.ceil((last + COOLDOWN_S * 1000 - Date.now()) / 1000);
   if (wait > 0) {
-    return { status: 429, body: { error: `Bitte noch ${wait} s warten.` } };
+    return { status: 429, body: { code: 'cooldown', wait, error: `Bitte noch ${wait} s warten.` } };
   }
 
   const t0 = new Date();
@@ -62,7 +62,7 @@ async function open(user, action) {
     const snap = await live.fast();
     if (snap.fresh && snap.free === 0) {
       await logEvent(user.id, action, 'full');
-      return { status: 409, body: { error: 'Die Station ist gerade voll.' } };
+      return { status: 409, body: { code: 'full', error: 'Die Station ist gerade voll.' } };
     }
     await publish(TAP_TOPIC, JSON.stringify({ uid: `APP-${user.username}`, source: 'app' }));
   }

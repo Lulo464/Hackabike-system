@@ -91,14 +91,9 @@ async function fast() {
       .map((t) => ({ ts: t.ts, uid: maskUid(t.payload) }))
       .filter((t) => !t.uid.startsWith('APP-'))
       .filter((t, i, all) => !(i > 0 && all[i - 1].uid === t.uid && all[i - 1].ts - t.ts < 2000))
-      .map((t) => ({ ts: t.ts, kind: 'chip', text: `Chip ••${t.uid.slice(-4)}` })),
-    ...events.rows.map((e) => ({
-      ts: e.ts,
-      kind: 'app',
-      text: e.result === 'opened'
-        ? (e.action === 'park' ? 'Per App eingeparkt' : 'Per App abgeholt')
-        : e.result === 'full' ? 'App: Station war voll' : 'App: Öffnen fehlgeschlagen',
-    })),
+      .map((t) => ({ ts: t.ts, kind: 'chip', uid: t.uid.slice(-4) })),
+    // the browser words these in the chosen language
+    ...events.rows.map((e) => ({ ts: e.ts, kind: 'app', action: e.action, result: e.result })),
   ].sort((a, b) => b.ts - a.ts).slice(0, 8);
 
   const g = gate.rows[0];

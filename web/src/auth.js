@@ -65,7 +65,7 @@ async function loadUser(req, _res, next) {
 }
 
 function requireUser(req, res, next) {
-  if (!req.user) return res.status(401).json({ error: 'Bitte zuerst anmelden.' });
+  if (!req.user) return res.status(401).json({ code: 'auth_required', error: 'Bitte zuerst anmelden.' });
   next();
 }
 
@@ -77,7 +77,7 @@ function rateLimit(req, res, next) {
   const a = attempts.get(key);
   if (!a || now - a.start > 10 * 60_000) attempts.set(key, { start: now, n: 1 });
   else if (++a.n > 15) {
-    return res.status(429).json({ error: 'Zu viele Versuche. Bitte in ein paar Minuten erneut probieren.' });
+    return res.status(429).json({ code: 'rate_limited', error: 'Zu viele Versuche. Bitte in ein paar Minuten erneut probieren.' });
   }
   next();
 }
@@ -89,20 +89,20 @@ async function register(req, res) {
   const password = String(req.body?.password || '');
   const displayName = String(req.body?.displayName || '').trim().slice(0, 40) || username;
   if (REGISTRATION_CODE && req.body?.code !== REGISTRATION_CODE) {
-    return res.status(403).json({ error: 'Der Registrierungscode stimmt nicht.' });
+    return res.status(403).json({ code: 'bad_code', error: 'Der Registrierungscode stimmt nicht.' });
   }
   if (!USERNAME_RE.test(username)) {
-    return res.status(400).json({ error: 'Benutzername: 3–32 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich.' });
+    return res.status(400).json({ code: 'bad_username', error: 'Benutzername: 3–32 Zeichen, nur a–z, 0–9, Punkt, Minus, Unterstrich.' });
   }
   if (password.length < 8) {
-    return res.status(400).json({ error: 'Das Passwort braucht mindestens 8 Zeichen.' });
+    return res.status(400).json({ code: 'short_password', error: 'Das Passwort braucht mindestens 8 Zeichen.' });
   }
   const hash = await hashPassword(password);
   const { rows } = await pool.query(
     `INSERT INTO app_users (username, display_name, password_hash) VALUES ($1, $2, $3)
      ON CONFLICT (username) DO NOTHING RETURNING id, username, display_name`,
     [username, displayName, hash]);
-  if (!rows[0]) return res.status(409).json({ error: 'Diesen Benutzernamen gibt es schon.' });
+  if (!rows[0]) return res.status(409).json({ code: 'username_taken', error: 'Diesen Benutzernamen gibt es schon.' });
   await createSession(res, rows[0].id);
   res.status(201).json({ user: publicUser(rows[0]) });
 }
@@ -113,7 +113,7 @@ async function login(req, res) {
   const { rows } = await pool.query(
     'SELECT id, username, display_name, password_hash FROM app_users WHERE username = $1', [username]);
   const ok = rows[0] && await verifyPassword(password, rows[0].password_hash);
-  if (!ok) return res.status(401).json({ error: 'Benutzername oder Passwort falsch.' });
+  if (!ok) return res.status(401).json({ code: 'bad_login', error: 'Benutzername oder Passwort falsch.' });
   await createSession(res, rows[0].id);
   res.json({ user: publicUser(rows[0]) });
 }

@@ -91,6 +91,37 @@ button { font: inherit; color: inherit; }
 .pulse.off { background: var(--crit); }
 @keyframes ping { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(3); opacity: 0; } }
 
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.lang { position: relative; }
+.lang-btn {
+  display: flex; align-items: center; gap: .35rem; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 999px; padding: .42rem .7rem; cursor: pointer;
+  font-size: .85rem; font-weight: 650; transition: transform .2s var(--ease);
+}
+.lang-btn:active { transform: scale(.94); }
+.lang-btn .flag { font-size: 1.15rem; line-height: 1; transition: transform .45s var(--spring); }
+.lang-btn.swap .flag { animation: flip .45s var(--spring); }
+@keyframes flip { 0% { transform: rotateY(90deg) scale(.6); } 100% { transform: none; } }
+.lang-menu {
+  position: absolute; right: 0; top: calc(100% + 8px); min-width: 180px; z-index: 20;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: var(--shadow); padding: 6px; display: grid; gap: 2px;
+  transform-origin: top right; animation: menu-in .22s var(--ease);
+}
+@keyframes menu-in { from { opacity: 0; transform: scale(.92) translateY(-4px); } }
+.lang-menu button {
+  display: flex; align-items: center; gap: .6rem; width: 100%; border: 0; background: transparent;
+  padding: .55rem .7rem; border-radius: 11px; cursor: pointer; text-align: left; font-size: .95rem;
+}
+.lang-menu button:hover, .lang-menu button:focus-visible { background: var(--surface-2); outline: none; }
+.lang-menu button[aria-checked="true"] { font-weight: 700; }
+.lang-menu button[aria-checked="true"]::after { content: "✓"; margin-left: auto; color: var(--accent); }
+.lang-menu .flag { font-size: 1.25rem; }
+.lang-menu .code { color: var(--muted); font-size: .78rem; font-weight: 600; }
+@media (max-width: 380px) { .account-btn span { display: none; } .account-btn { padding: .45rem .6rem; } }
+main.relang { animation: relang .35s var(--ease); }
+@keyframes relang { from { opacity: .35; } }
+
 .account-btn {
   display: flex; align-items: center; gap: .4rem; border: 1px solid var(--line);
   background: var(--surface); border-radius: 999px; padding: .45rem .85rem .45rem .7rem;

@@ -4,6 +4,10 @@ Mobile dashboard for the bikestation, served on port **8080** by its own
 container. Everything it shows is read from Postgres; MQTT is used only to
 open and close the gate.
 
+- **Languages**: German, English, Dutch via the flag button in the header;
+  the choice is kept in the browser, the first visit follows the browser
+  language. Texts live in `public/i18n.js`; the API returns error `code`s
+  that the page translates.
 - **Free slots first**: live count, per-slot state, "sensors offline" when no
   slot has reported for 20 s (`STALE_AFTER_S`).
 - **Forecast**: expected occupancy per hour for today and the next two days,

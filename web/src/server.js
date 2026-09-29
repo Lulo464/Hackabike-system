@@ -80,7 +80,7 @@ app.get('/healthz', async (_req, res) => {
 
 app.use((err, _req, res, _next) => {
   console.error(err);
-  res.status(500).json({ error: 'Interner Fehler.' });
+  res.status(500).json({ code: 'internal', error: 'Interner Fehler.' });
 });
 
 // ---- boot --------------------------------------------------------------------

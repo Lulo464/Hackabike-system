@@ -1,44 +1,70 @@
 'use strict';
 
 const $ = (id) => document.getElementById(id);
+const { t } = window.I18N;
 const HOLD_MS = 800;
 const RING = 2 * Math.PI * 52;
 
-const state = { live: null, forecast: null, user: null, day: 0, prevSlots: {}, prevFree: null, seenActivity: new Set() };
+const state = {
+  live: null, forecast: null, user: null, day: 0,
+  prevSlots: {}, seenActivity: new Set(),
+  conn: 'connecting',   // connecting | live | lost
+  gate: null,           // { res, phase: opening | open | closing }
+};
 
 // ---- helpers -------------------------------------------------------------
-const fmtTime = (iso) => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+const loc = () => window.I18N.locale;
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString(loc(), { hour: '2-digit', minute: '2-digit' });
 function ago(iso) {
   if (!iso) return '';
   const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
-  if (s < 5) return 'gerade eben';
-  if (s < 60) return `vor ${s} s`;
-  if (s < 3600) return `vor ${Math.round(s / 60)} min`;
-  if (s < 86400) return `um ${fmtTime(iso)}`;
-  return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  if (s < 5) return t('ago.now');
+  if (s < 60) return t('ago.s', { n: s });
+  if (s < 3600) return t('ago.m', { n: Math.round(s / 60) });
+  if (s < 86400) return t('ago.at', { t: fmtTime(iso) });
+  return new Date(iso).toLocaleString(loc(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
-const num = (n, d = 1) => Number(n).toLocaleString('de-DE', { maximumFractionDigits: d });
+const num = (n, d = 1) => Number(n).toLocaleString(loc(), { maximumFractionDigits: d });
+const hourText = (h) => t('time.hour', { h: window.I18N.lang === 'de' ? h : String(h).padStart(2, '0') });
+const rangeText = (h) => {
+  const pad = window.I18N.lang === 'de' ? String : (x) => String(x).padStart(2, '0');
+  return t('time.range', { a: pad(h), b: pad(h + 1) });
+};
+const kindText = (k) => t({ measured: 'legend.measured', now: 'legend.now', forecast: 'legend.forecast' }[k]);
 const icon = (name) => `<svg><use href="#i-${name}"/></svg>`;
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let toastTimer;
 function toast(msg) {
-  const t = $('toast');
-  t.textContent = msg; t.hidden = false;
-  t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
+  const el = $('toast');
+  el.textContent = msg; el.hidden = false;
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.hidden = true; }, 3800);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 3800);
+}
+
+// errors carry a code from the server; word them in the current language
+function errText(err) {
+  if (err.code) return t(`err.${err.code}`, err.data);
+  return err.message;
 }
 
 async function api(path, body) {
-  const res = await fetch(path, {
-    method: body ? 'POST' : 'GET',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-    credentials: 'same-origin',
-  });
+  let res;
+  try {
+    res = await fetch(path, {
+      method: body ? 'POST' : 'GET',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: 'same-origin',
+    });
+  } catch {
+    throw Object.assign(new Error('network'), { code: 'network' });
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error || `Fehler ${res.status}`), { status: res.status });
+  if (!res.ok) {
+    throw Object.assign(new Error(data.error || `HTTP ${res.status}`), { status: res.status, code: data.code, data });
+  }
   return data;
 }
 
@@ -49,8 +75,8 @@ function animateNumber(el, to) {
   if (from === to || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = to; return; }
   el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
   const t0 = performance.now();
-  const step = (t) => {
-    const k = Math.min(1, (t - t0) / 500);
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / 500);
     el.textContent = Math.round(from + (to - from) * k);
     if (k < 1) requestAnimationFrame(step);
   };
@@ -59,43 +85,47 @@ function animateNumber(el, to) {
 
 function renderHero(l) {
   const hero = $('hero');
-  const free = l.free; const total = l.total;
+  const { free, total } = l;
   const share = total ? free / total : 0;
   let level; let pill; let title;
   if (!l.fresh) {
-    level = 'stale'; pill = ['', 'alert', 'Sensoren offline'];
-    title = l.lastUpdate ? 'Letzter Stand' : 'Noch keine Daten';
+    level = 'stale'; pill = ['', 'alert', t('pill.offline')];
+    title = t(l.lastUpdate ? 'title.last' : 'title.nodata');
   } else if (free === 0) {
-    level = 'crit'; pill = ['crit', 'x', 'Voll']; title = 'Gerade kein Platz frei';
+    level = 'crit'; pill = ['crit', 'x', t('pill.full')]; title = t('title.full');
   } else if (share <= 0.25) {
-    level = 'warn'; pill = ['warn', 'alert', 'Fast voll']; title = free === 1 ? 'Noch 1 Platz frei' : `Noch ${free} Plätze frei`;
+    level = 'warn'; pill = ['warn', 'alert', t('pill.almost')];
+    title = free === 1 ? t('title.one') : t('title.few', { n: free });
   } else {
-    level = 'good'; pill = ['good', 'check', 'Viel Platz']; title = `${free} Plätze frei`;
+    level = 'good'; pill = ['good', 'check', t('pill.plenty')]; title = t('title.many', { n: free });
   }
   hero.dataset.level = level;
   $('heroPill').className = `status-pill ${pill[0]}`;
-  $('heroPill').innerHTML = `${icon(pill[1])}<span>${pill[2]}</span>`;
+  $('heroPill').innerHTML = `${icon(pill[1])}<span>${esc(pill[2])}</span>`;
   $('heroTitle').textContent = title;
   animateNumber($('heroNum'), free);
-  $('heroOf').textContent = `von ${total} frei`;
+  $('heroOf').textContent = t('hero.of', { total });
   $('ringFill').style.strokeDashoffset = String(RING * (1 - share));
   $('ringFill').style.opacity = share > 0 ? '1' : '0';
   $('heroSub').textContent = l.fresh
-    ? `Live · aktualisiert ${ago(l.lastUpdate)}`
-    : l.lastUpdate ? `Stand ${ago(l.lastUpdate)} – die Sensoren melden gerade nichts.` : 'Warte auf die ersten Messwerte.';
+    ? t('sub.live', { ago: ago(l.lastUpdate) })
+    : l.lastUpdate ? t('sub.stale', { ago: ago(l.lastUpdate) }) : t('sub.waiting');
 
   // a hint from the forecast: when does it get better / worse?
   const f = state.forecast;
   let hint = '';
-  if (f && f.best && l.fresh && free <= 1) hint = `Tipp: ${f.best.label.toLowerCase()} gegen ${f.best.hour} Uhr sind ≈${Math.round(f.best.expectedFree)} Plätze frei.`;
-  else if (f && f.peak && l.fresh && free > 1) hint = `Am vollsten wird es ${f.peak.label.toLowerCase()} gegen ${f.peak.hour} Uhr (≈${f.peak.occupancy} % belegt).`;
+  if (f && f.best && l.fresh && free <= 1) {
+    hint = t('hint.best', { day: t(`dayl.${f.best.day}`), time: hourText(f.best.hour), n: Math.round(f.best.expectedFree) });
+  } else if (f && f.peak && l.fresh && free > 1) {
+    hint = t('hint.peak', { day: t(`dayl.${f.peak.day}`), time: hourText(f.peak.hour), p: f.peak.occupancy });
+  }
   $('heroHint').textContent = hint;
 }
 
 // ---- slots -----------------------------------------------------------------
-const SLOT_TEXT = { free: ['Frei', 'p'], occupied: ['Belegt', 'bike'], reserved: ['Reserviert', 'clock'], unknown: ['Unbekannt', 'alert'] };
+const SLOT_ICON = { free: 'p', occupied: 'bike', reserved: 'clock', unknown: 'alert' };
 
-function renderSlots(l) {
+function renderSlots(l, rebuild = false) {
   const wrap = $('slots');
   if (wrap.querySelector('.skeleton')) wrap.innerHTML = '';
   for (const s of l.slots) {
@@ -105,51 +135,57 @@ function renderSlots(l) {
       el.className = 'slot'; el.dataset.slot = s.slot;
       wrap.appendChild(el);
     }
-    const [label, ic] = SLOT_TEXT[s.state] || SLOT_TEXT.unknown;
-    const changed = state.prevSlots[s.slot] && state.prevSlots[s.slot] !== s.state;
-    if (el.dataset.state !== s.state || !el.innerHTML) {
-      el.dataset.state = s.state;
+    const st = SLOT_ICON[s.state] ? s.state : 'unknown';
+    const changed = state.prevSlots[s.slot] && state.prevSlots[s.slot] !== st;
+    if (rebuild || el.dataset.state !== st || !el.innerHTML) {
+      el.dataset.state = st;
       el.innerHTML = `
-        <div class="slot-top"><span class="slot-no">SLOT ${s.slot}</span><span class="slot-icon">${icon(ic)}</span></div>
-        <div><div class="slot-state">${label}</div><div class="slot-meta"></div></div>`;
+        <div class="slot-top"><span class="slot-no">${esc(t('slot.label', { n: s.slot }))}</span><span class="slot-icon">${icon(SLOT_ICON[st])}</span></div>
+        <div><div class="slot-state">${esc(t(`state.${st}`))}</div><div class="slot-meta"></div></div>`;
       if (changed) { el.classList.remove('changed'); void el.offsetWidth; el.classList.add('changed'); }
     }
     el.classList.toggle('stale', !s.fresh);
     const dist = s.distanceCm !== null ? `${num(s.distanceCm)} cm · ` : '';
-    el.querySelector('.slot-meta').textContent = !s.since ? 'keine Daten'
-      : s.fresh ? `${dist}live` : `Stand ${ago(s.since)}`;
-    state.prevSlots[s.slot] = s.state;
+    el.querySelector('.slot-meta').textContent = !s.since ? t('slot.nodata')
+      : s.fresh ? `${dist}${t('slots.live')}` : t('slot.asof', { ago: ago(s.since) });
+    state.prevSlots[s.slot] = st;
   }
-  $('slotsAge').textContent = l.fresh ? 'live' : 'offline';
+  $('slotsAge').textContent = t(l.fresh ? 'slots.live' : 'slots.offline');
 }
 
 // ---- activity & system -----------------------------------------------------
+function activityText(a) {
+  if (a.kind === 'chip') return t('act.chip', { uid: a.uid });
+  if (a.result === 'opened') return t(a.action === 'park' ? 'act.park' : 'act.pickup');
+  return t(a.result === 'full' ? 'act.full' : 'act.error');
+}
+
 function renderActivity(l) {
   const ul = $('activity');
-  if (!l.activity.length) { ul.innerHTML = '<li class="muted">Noch nichts passiert.</li>'; return; }
+  if (!l.activity.length) { ul.innerHTML = `<li class="muted">${esc(t('act.none'))}</li>`; return; }
+  const key = (a) => `${a.ts}|${a.kind}|${a.uid || a.action}`;
   ul.innerHTML = l.activity.map((a) => {
-    const key = `${a.ts}|${a.text}`;
-    const isNew = state.seenActivity.size && !state.seenActivity.has(key);
+    const isNew = state.seenActivity.size && !state.seenActivity.has(key(a));
     return `<li class="${isNew ? 'new' : ''}"><span class="act-icon ${a.kind}">${icon(a.kind === 'app' ? 'phone' : 'chip')}</span>
-      <span>${esc(a.text)}</span><span class="act-time" data-ts="${a.ts}">${ago(a.ts)}</span></li>`;
+      <span>${esc(activityText(a))}</span><span class="act-time" data-ts="${a.ts}">${ago(a.ts)}</span></li>`;
   }).join('');
-  for (const a of l.activity) state.seenActivity.add(`${a.ts}|${a.text}`);
+  for (const a of l.activity) state.seenActivity.add(key(a));
 }
 
 function renderSystem(l) {
   const devs = l.devices || [];
   $('devices').innerHTML = devs.length
-    ? devs.map((d) => `<span class="device ${d.online ? 'on' : 'off'}">${icon(d.online ? 'check' : 'x')}${esc(d.name)} · ${d.online ? 'online' : 'offline'}</span>`).join('')
-    : '<span class="muted small">Keine Geräte gemeldet.</span>';
+    ? devs.map((d) => `<span class="device ${d.online ? 'on' : 'off'}">${icon(d.online ? 'check' : 'x')}${esc(d.name)} · ${esc(t(d.online ? 'sys.online' : 'sys.offline'))}</span>`).join('')
+    : `<span class="muted small">${esc(t('sys.none'))}</span>`;
   const s = l.stats;
   if (!s) return;
   const c = s.last_cleanup;
   $('stats').innerHTML = `
-    <dt>Datenbank</dt><dd>${esc(s.db_size)}</dd>
-    <dt>Rohdaten</dt><dd>${num(s.raw_rows, 0)} Zeilen (letzte Minuten)</dd>
-    <dt>Minutenwerte</dt><dd>${num(s.live_minutes, 0)} live · ${num(s.demo_minutes, 0)} Demo</dd>
-    <dt>Aufräumen</dt><dd>${c ? `${ago(c.ts)}: ${num(c.rows_in, 0)} → ${num(c.buckets_out, 0)}` : 'läuft alle 5 min'}</dd>
-    <dt>Gate-Steuerung</dt><dd>${l.gateControl?.mqtt ? 'verbunden' : 'getrennt'}</dd>`;
+    <dt>${t('sys.db')}</dt><dd>${esc(s.db_size)}</dd>
+    <dt>${t('sys.raw')}</dt><dd>${t('sys.rawVal', { n: num(s.raw_rows, 0) })}</dd>
+    <dt>${t('sys.minutes')}</dt><dd>${t('sys.minutesVal', { live: num(s.live_minutes, 0), demo: num(s.demo_minutes, 0) })}</dd>
+    <dt>${t('sys.cleanup')}</dt><dd>${c ? `${ago(c.ts)}: ${num(c.rows_in, 0)} → ${num(c.buckets_out, 0)}` : t('sys.cleanupEvery')}</dd>
+    <dt>${t('sys.gate')}</dt><dd>${t(l.gateControl?.mqtt ? 'sys.connected' : 'sys.disconnected')}</dd>`;
 }
 
 // ---- forecast chart ----------------------------------------------------------
@@ -157,22 +193,24 @@ function renderForecast() {
   const f = state.forecast;
   if (!f) return;
 
+  const tile = (k, when, d) => `<div class="insight"><div class="k">${esc(t(k))}</div>
+    <div class="v">${esc(`${t(`day.${when.day}`)} ${hourText(when.hour)}`)}</div><div class="d">${esc(d)}</div></div>`;
   $('insights').innerHTML = [
-    f.best && `<div class="insight"><div class="k">Beste Zeit</div><div class="v">${f.best.label} ${f.best.hour} Uhr</div><div class="d">≈${Math.round(f.best.expectedFree)} von ${f.slots} frei</div></div>`,
-    f.peak && `<div class="insight"><div class="k">Stoßzeit</div><div class="v">${f.peak.label} ${f.peak.hour} Uhr</div><div class="d">≈${f.peak.occupancy} % belegt</div></div>`,
+    f.best && tile('fc.best', f.best, t('fc.bestSub', { n: Math.round(f.best.expectedFree), total: f.slots })),
+    f.peak && tile('fc.peak', f.peak, t('fc.peakSub', { p: f.peak.occupancy })),
   ].filter(Boolean).join('');
 
   $('dayTabs').innerHTML = f.days.map((d, i) =>
-    `<button role="tab" type="button" data-day="${i}" aria-selected="${i === state.day}">${d.label}</button>`).join('');
+    `<button role="tab" type="button" data-day="${i}" aria-selected="${i === state.day}">${esc(t(`day.${i}`))}</button>`).join('');
 
   $('forecastNote').textContent = f.trainingDays
-    ? `Grundlage: Belegung der letzten ${f.trainingDays} Tage, je Wochentag und Stunde gemittelt${f.liveBlended ? '; die nächsten Stunden sind an den Live-Stand angeglichen' : ''}.${f.includesDemo ? ' Enthält fiktive Demo-Daten.' : ''}`
-    : 'Noch zu wenig Verlauf für eine Prognose.';
-  drawChart(f.days[state.day]);
+    ? `${t('fc.note', { n: f.trainingDays })}${f.liveBlended ? t('fc.noteLive') : ''}.${f.includesDemo ? ` ${t('fc.noteDemo')}` : ''}`
+    : t('fc.noteNone');
+  drawChart(f.days[state.day], state.day);
   renderTable(f.days[state.day]);
 }
 
-function drawChart(day) {
+function drawChart(day, dayIndex) {
   const svg = $('chart');
   const W = svg.clientWidth || 600; const H = 220;
   const padL = 34; const padR = 6; const padT = 18; const padB = 24;
@@ -202,21 +240,20 @@ function drawChart(day) {
     if (i % 3 === 0) out += `<text class="axis-label" x="${x + bw / 2}" y="${H - 6}" text-anchor="middle">${String(h.hour).padStart(2, '0')}</text>`;
     if (h.kind === 'now') {
       out += `<line class="now-line" x1="${x + bw / 2}" x2="${x + bw / 2}" y1="${padT - 4}" y2="${y(0)}"/>`;
-      out += `<text class="now-label" x="${x + bw / 2}" y="${padT - 7}" text-anchor="middle">jetzt</text>`;
+      out += `<text class="now-label" x="${x + bw / 2}" y="${padT - 7}" text-anchor="middle">${esc(t('chart.now'))}</text>`;
     }
   });
   svg.innerHTML = out;
-  svg.setAttribute('aria-label', `Auslastung ${day.label}, pro Stunde`);
+  svg.setAttribute('aria-label', t('chart.aria', { day: t(`day.${dayIndex}`) }));
 
   const tip = $('tooltip');
   const show = (i) => {
     const h = day.hours[i];
     svg.querySelectorAll('.col.active').forEach((c) => c.classList.remove('active'));
     svg.querySelector(`.col[data-i="${i}"]`)?.classList.add('active');
-    const kind = { measured: 'Gemessen', now: 'Jetzt', forecast: 'Prognose' }[h.kind];
     tip.innerHTML = h.occupancy === null
-      ? `<b>${h.hour}–${h.hour + 1} Uhr</b>keine Daten`
-      : `<b>${h.hour}–${h.hour + 1} Uhr · ${kind}</b>${h.occupancy} % belegt · ≈${num(h.expectedFree)} frei`;
+      ? `<b>${esc(rangeText(h.hour))}</b>${esc(t('tip.nodata'))}`
+      : `<b>${esc(`${rangeText(h.hour)} · ${kindText(h.kind)}`)}</b>${esc(t('tip.value', { p: h.occupancy, n: num(h.expectedFree) }))}`;
     const x = padL + i * cw + cw / 2;
     const rect = svg.getBoundingClientRect();
     const px = (x / W) * rect.width;
@@ -232,8 +269,8 @@ function drawChart(day) {
 }
 
 function renderTable(day) {
-  $('forecastTable').innerHTML = `<table><thead><tr><th>Stunde</th><th>Art</th><th>Belegt</th><th>Frei (≈)</th></tr></thead><tbody>${
-    day.hours.map((h) => `<tr><td>${h.hour}–${h.hour + 1} Uhr</td><td>${{ measured: 'Gemessen', now: 'Jetzt', forecast: 'Prognose' }[h.kind]}</td>
+  $('forecastTable').innerHTML = `<table><thead><tr><th>${t('table.hour')}</th><th>${t('table.kind')}</th><th>${t('table.occ')}</th><th>${t('table.free')}</th></tr></thead><tbody>${
+    day.hours.map((h) => `<tr><td>${esc(rangeText(h.hour))}</td><td>${esc(kindText(h.kind))}</td>
       <td>${h.occupancy === null ? '–' : `${h.occupancy} %`}</td><td>${h.expectedFree === null ? '–' : num(h.expectedFree)}</td></tr>`).join('')
   }</tbody></table>`;
 }
@@ -249,6 +286,11 @@ let resizeT;
 addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(renderForecast, 150); });
 
 // ---- live stream -----------------------------------------------------------
+function renderConn() {
+  $('connDot').className = `pulse ${{ live: 'on', lost: 'off', connecting: '' }[state.conn]}`;
+  $('connText').textContent = t({ live: 'conn.live', lost: 'conn.lost', connecting: 'conn.connecting' }[state.conn]);
+}
+
 function onLive(l) {
   state.live = l;
   renderHero(l); renderSlots(l); renderActivity(l); renderSystem(l);
@@ -258,8 +300,8 @@ function connect() {
   const es = new EventSource('/api/stream');
   es.addEventListener('live', (e) => onLive(JSON.parse(e.data)));
   es.addEventListener('forecast', (e) => { state.forecast = JSON.parse(e.data); renderForecast(); if (state.live) renderHero(state.live); });
-  es.onopen = () => { $('connDot').className = 'pulse on'; $('connText').textContent = 'Live verbunden'; };
-  es.onerror = () => { $('connDot').className = 'pulse off'; $('connText').textContent = 'Verbindung unterbrochen …'; };
+  es.onopen = () => { state.conn = 'live'; renderConn(); };
+  es.onerror = () => { state.conn = 'lost'; renderConn(); };
 }
 
 // relative times keep counting between updates
@@ -278,8 +320,13 @@ function setUser(user) {
   state.user = user;
   $('accessGuest').hidden = !!user;
   $('accessUser').hidden = !user;
-  $('accountLabel').textContent = user ? user.displayName : 'Anmelden';
+  $('accountLabel').textContent = user ? user.displayName : t('account.login');
   if (user) $('userName').textContent = user.displayName;
+}
+
+function renderAuthTexts() {
+  $('authTitle').textContent = t(authMode === 'login' ? 'auth.welcome' : 'auth.create');
+  $('authSubmit').textContent = t(authMode === 'login' ? 'account.login' : 'access.register');
 }
 
 function openAuth(mode) {
@@ -287,8 +334,7 @@ function openAuth(mode) {
   const sheet = $('authSheet');
   sheet.querySelectorAll('.auth-tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
   sheet.querySelectorAll('[data-only="register"]').forEach((el) => { el.hidden = mode !== 'register' || (el.id === 'codeField' && !codeRequired); });
-  $('authTitle').textContent = mode === 'login' ? 'Willkommen zurück' : 'Konto erstellen';
-  $('authSubmit').textContent = mode === 'login' ? 'Anmelden' : 'Registrieren';
+  renderAuthTexts();
   sheet.querySelector('[name=password]').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
   $('authError').textContent = '';
   if (!sheet.open) sheet.showModal();
@@ -313,10 +359,10 @@ $('authForm').addEventListener('submit', async (e) => {
     setUser(user);
     $('authSheet').close();
     e.target.reset();
-    toast(authMode === 'login' ? `Hallo ${user.displayName}!` : `Konto erstellt – willkommen, ${user.displayName}!`);
+    toast(t(authMode === 'login' ? 'toast.hello' : 'toast.welcome', { name: user.displayName }));
   } catch (err) {
     const el = $('authError');
-    el.textContent = err.message;
+    el.textContent = errText(err);
     el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
   } finally { btn.disabled = false; }
 });
@@ -324,32 +370,40 @@ $('authForm').addEventListener('submit', async (e) => {
 $('logoutBtn').addEventListener('click', async () => {
   await api('/api/logout', {}).catch(() => {});
   setUser(null);
-  toast('Abgemeldet.');
+  toast(t('toast.bye'));
 });
 
 // ---- press & hold to open the gate -------------------------------------------
-let gateTimer;
+let gateTimers = [];
+
+function renderGateTexts() {
+  const g = state.gate;
+  if (!g) return;
+  $('gateTitle').textContent = t({ opening: 'gate.opening', open: 'gate.open', closing: 'gate.closing' }[g.phase]);
+  $('gateSub').textContent = g.res.action === 'park'
+    ? (g.res.slot ? t('gate.slot', { n: g.res.slot }) : t('gate.assign'))
+    : t('gate.bye');
+}
+
 function showGate(res) {
+  gateTimers.forEach(clearTimeout); gateTimers = [];
   const stage = $('gateStage');
   stage.hidden = false; stage.classList.remove('open');
-  $('gateTitle').textContent = 'Gate öffnet …';
-  $('gateSub').textContent = res.action === 'park'
-    ? (res.slot ? `Slot ${res.slot} ist für dich reserviert.` : 'Ein freier Slot wird dir zugewiesen.')
-    : 'Viel Spaß mit deinem Rad!';
+  state.gate = { res, phase: 'opening' };
+  renderGateTexts();
   requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.add('open')));
-  setTimeout(() => { $('gateTitle').textContent = 'Gate ist offen'; }, 700);
+  gateTimers.push(setTimeout(() => { state.gate.phase = 'open'; renderGateTexts(); }, 700));
 
   const bar = $('countdownBar');
   bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)';
   void bar.offsetWidth;
   bar.style.transition = `transform ${res.openSeconds}s linear`;
   bar.style.transform = 'scaleX(0)';
-  clearTimeout(gateTimer);
-  gateTimer = setTimeout(() => {
+  gateTimers.push(setTimeout(() => {
     stage.classList.remove('open');
-    $('gateTitle').textContent = 'Gate schließt';
-    setTimeout(() => { stage.hidden = true; }, 1600);
-  }, res.openSeconds * 1000);
+    state.gate.phase = 'closing'; renderGateTexts();
+    gateTimers.push(setTimeout(() => { stage.hidden = true; state.gate = null; }, 1600));
+  }, res.openSeconds * 1000));
 }
 
 async function triggerGate(btn) {
@@ -357,30 +411,29 @@ async function triggerGate(btn) {
   document.querySelectorAll('.hold-btn').forEach((b) => b.classList.add('busy'));
   if (navigator.vibrate) navigator.vibrate(30);
   try {
-    const res = await api('/api/gate', { action });
-    showGate(res);
+    showGate(await api('/api/gate', { action }));
   } catch (err) {
     if (err.status === 401) { setUser(null); openAuth('login'); }
-    toast(err.message);
+    toast(errText(err));
   } finally {
     setTimeout(() => document.querySelectorAll('.hold-btn').forEach((b) => b.classList.remove('busy')), 1200);
   }
 }
 
 document.querySelectorAll('.hold-btn').forEach((btn) => {
-  let t = null;
+  let timer = null;
   btn.style.setProperty('--hold', `${HOLD_MS}ms`);
   const start = (e) => {
-    if (btn.classList.contains('busy') || t) return;
+    if (btn.classList.contains('busy') || timer) return;
     if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
     if (e.type === 'keydown') { e.preventDefault(); if (e.repeat) return; }
     btn.classList.add('holding');
-    t = setTimeout(() => { t = null; btn.classList.remove('holding'); triggerGate(btn); }, HOLD_MS);
+    timer = setTimeout(() => { timer = null; btn.classList.remove('holding'); triggerGate(btn); }, HOLD_MS);
   };
   const cancel = () => {
-    if (!t) return;
-    clearTimeout(t); t = null; btn.classList.remove('holding');
-    toast('Gedrückt halten, bis der Balken voll ist.');
+    if (!timer) return;
+    clearTimeout(timer); timer = null; btn.classList.remove('holding');
+    toast(t('toast.hold'));
   };
   btn.addEventListener('pointerdown', start);
   btn.addEventListener('keydown', start);
@@ -388,7 +441,60 @@ document.querySelectorAll('.hold-btn').forEach((btn) => {
   btn.addEventListener('contextmenu', (e) => e.preventDefault());
 });
 
+// ---- language ----------------------------------------------------------------
+function renderLangButton(animate) {
+  const { LANGS, lang } = window.I18N;
+  $('langFlag').textContent = LANGS[lang].flag;
+  $('langCode').textContent = lang.toUpperCase();
+  $('langMenu').innerHTML = Object.entries(LANGS).map(([code, l]) =>
+    `<button type="button" role="menuitemradio" aria-checked="${code === lang}" data-lang="${code}">
+      <span class="flag">${l.flag}</span><span>${esc(l.name)}</span><span class="code">${code.toUpperCase()}</span></button>`).join('');
+  if (animate) { const b = $('langBtn'); b.classList.remove('swap'); void b.offsetWidth; b.classList.add('swap'); }
+}
+
+function renderAll() {
+  window.I18N.applyStatic();
+  renderLangButton(false);
+  renderConn();
+  setUser(state.user);
+  renderAuthTexts();
+  renderGateTexts();
+  if (state.live) { renderHero(state.live); renderSlots(state.live, true); renderActivity(state.live); renderSystem(state.live); }
+  renderForecast();
+}
+
+function toggleLangMenu(open) {
+  const menu = $('langMenu');
+  const show = open ?? menu.hidden;
+  menu.hidden = !show;
+  $('langBtn').setAttribute('aria-expanded', String(show));
+  if (show) menu.querySelector('[aria-checked="true"]')?.focus();
+}
+
+$('langBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleLangMenu(); });
+$('langMenu').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-lang]');
+  if (!b) return;
+  toggleLangMenu(false);
+  if (b.dataset.lang === window.I18N.lang) return;
+  window.I18N.setLang(b.dataset.lang);
+  const main = document.querySelector('main');
+  main.classList.remove('relang'); void main.offsetWidth; main.classList.add('relang');
+  renderAll();
+  renderLangButton(true);
+  $('langBtn').focus();
+});
+$('langMenu').addEventListener('keydown', (e) => {
+  const items = [...$('langMenu').querySelectorAll('button')];
+  const i = items.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  if (e.key === 'Escape') { toggleLangMenu(false); $('langBtn').focus(); }
+});
+document.addEventListener('click', (e) => { if (!e.target.closest('.lang')) toggleLangMenu(false); });
+
 // ---- boot --------------------------------------------------------------------
+renderAll();
 (async () => {
   try {
     const [{ user }, cfg] = await Promise.all([api('/api/me'), api('/api/config')]);
