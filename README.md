@@ -88,8 +88,10 @@ Then flash the two ESP32s as described in [esp/README.md](esp/README.md).
 
 1. Tap your chip at the reader (or press **Park** in the app).
 2. The LCD greets you and shows your slot: `Park at Slot 2`. That slot blinks blue.
-3. The gate opens for **20 s**. Push the bike in.
-4. Once the sensor sees the bike, the LCD shows `Secured: Slot 2` and the slot turns red (occupied).
+3. The gate opens. Push the bike in.
+4. Once the sensor sees the bike, the LCD shows `Secured: Slot 2`, the slot
+   turns red (occupied) and the **gate closes**. If no bike arrives, the gate
+   closes after 20 s.
 
 A reservation expires after **5 minutes** if no bike arrives.
 
@@ -97,7 +99,8 @@ A reservation expires after **5 minutes** if no bike arrives.
 
 1. Tap your chip again (or press **Pick up** in the app).
 2. Your slot blinks blue and the gate opens.
-3. Take the bike out. As soon as the slot is empty, the gate **opens again** so you can leave.
+3. Take the bike out. As soon as the slot is empty, the gate **opens for 5 s**
+   so you can leave.
 
 The pickup permission is valid for **2 minutes**.
 
