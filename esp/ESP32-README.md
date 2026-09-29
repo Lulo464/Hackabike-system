@@ -39,6 +39,8 @@ D21 und D23 sind frei.
 | Servo MG90S (Gate) | Signal (orange) | D27 | |
 | | + (rot) / - (braun) | 5V / GND | besser eigenes 5V-Netzteil (GND verbinden), sonst Elko 470 uF am Servo |
 
+D25 ist frei (reserviert fuer die Sound-Idee unten).
+
 Nach dem Flashen oder einem Reset haengt der PN532, bis ESP 2 einmal ganz stromlos war
 (USB-Stecker ziehen). Beim normalen Einschalten startet er sauber.
 
@@ -100,6 +102,54 @@ docker run --rm -it -v "$PWD":/config ghcr.io/esphome/esphome run esp32-esphome.
 ```
 
 Serielle Konsole: 115200 Baud.
+
+## Idee: Sound am Eingang (nicht umgesetzt)
+
+**Status:** nur Idee. Der benoetigte Verstaerker ist nicht verfuegbar, nichts davon
+steckt in Firmware oder Node-RED-Flow.
+
+**Ziel:** eine Hintergrundmelodie am Eingang und ein Piepen bei einem Diebstahl-Alarm.
+
+**Nur Melodien, keine echte Musik.** Gemeint sind einstimmige Klingelton-Melodien (RTTTL).
+MP3 oder Streams braeuchten ein I2S-Verstaerkermodul (z. B. MAX98357A) und ESP-IDF statt
+Arduino, und sie wuerden neben RFID, LCD, Servo und Sensoren auf ESP 2 ruckeln.
+
+**Hardware:** passiver Lautsprecher + Verstaerkermodul PAM8403 an ESP 2. Den
+Lautsprecher nie direkt an einen GPIO haengen, der Strom zerstoert den Pin.
+
+| Von | Nach | Hinweis |
+|---|---|---|
+| ESP D25 | PAM8403 L (Eingang) | ueber 1 kOhm, ideal zusaetzlich 1-10 uF in Reihe |
+| ESP GND | PAM8403 GND (Eingang) | gemeinsame Masse |
+| 5V (VIN oder Servo-Netzteil) | PAM8403 5V | |
+| GND | PAM8403 GND (Versorgung) | |
+| Lautsprecher | PAM8403 L+ / L- | L- **nicht** auf GND, der PAM8403 ist ein Brueckenverstaerker |
+
+Notloesung ohne Verstaerker: NPN-Transistor (BC337 / 2N2222) mit 1 kOhm an der Basis von
+D25, Lautsprecher mit 22-47 Ohm in Reihe zwischen 5V und Kollektor. Leiser und kratziger.
+
+**Firmware (Skizze):**
+
+```yaml
+output:
+  - platform: ledc
+    id: sound_pwm
+    pin: GPIO25
+
+rtttl:
+  id: sound
+  output: sound_pwm
+```
+
+Steuerung per MQTT `bikestation/entrance/sound`:
+- `music`: Hintergrundmelodie in Schleife (bei `on_finished_playback` neu starten);
+- `alarm`: Piepen bis `stop`;
+- `stop`: Ruhe;
+- alles andere wird als RTTTL-Zeichenkette abgespielt, z. B.
+  `beep:d=8,o=6,b=200:c,p,c,p,c`.
+
+**Node-RED:** Bei einem `theft`-Alarm (`fn_smart_logic`) `alarm` senden, nach dem
+Zuruecksetzen auf `/dashboard/admin` wieder `music`.
 
 ## Bekannte Punkte
 
