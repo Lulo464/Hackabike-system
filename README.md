@@ -227,7 +227,7 @@ See [esp/README.md](esp/README.md#flashen).
 ## Remote access
 
 The Pi can be reached from outside the LAN in two ways. Neither is set up by
-`docker compose up`, because both need secrets
+`docker compose up`, because both need secrets.
 
 ### Pangolin / Newt (public internet)
 
