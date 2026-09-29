@@ -135,7 +135,8 @@ Chip and app taps take the same path through the flow:
    `reserved -> expired`. A slot only counts as changed after 5 equal readings
    (~1 s), so sensor flicker does not end a session.
 
-**Theft alarm and lock.** If a parked bike leaves its slot without a pickup,
+**Theft alarm and lock.** If a *secured* bike (one that arrived on a chip/app
+reservation, LCD `Secured: Slot N`) leaves its slot without a pickup,
 the slot turns to `alarm` (fast red blink), an alert goes out on
 `bikestation/system/alerts`, the gate closes and the whole station is locked:
 every chip and app tap is refused (`Station gesperrt`) and the gate does not
@@ -143,7 +144,8 @@ open. The alarm is cleared on the dashboard page **`/dashboard/admin`** (no
 login); clearing ends the stolen bike's session so its owner can park again.
 Alarms, pickups and reservations are kept in the flow context on disk
 (`nodered/context/`), so a Node-RED restart does not lift the lock. A sensor
-without echo (`999`) never counts as "bike gone".
+without echo (`999`) never counts as "bike gone", and anything in front of a
+sensor that was not parked through a reservation never raises an alarm.
 
 The Postgres ingest (`bikestation/#`) uses its **own MQTT connection**
 (`bikestation-broker (db ingest)`): on the shared connection the broker
