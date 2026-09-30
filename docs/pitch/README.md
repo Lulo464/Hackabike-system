@@ -8,7 +8,7 @@ open source & documentation, and the pitch itself.
 |---|---|
 | [`slides.pdf`](slides.pdf) | the deck, ready to present (speaker notes included as PDF annotations) |
 | [`slides.md`](slides.md) | the source, one Markdown file written for [Marp](https://marp.app) |
-| [`slides.pptx`](slides.pptx) | editable PowerPoint version with speaker notes (a separate copy: changes to `slides.md` do not update it) |
+| [`slides.pptx`](slides.pptx) | editable PowerPoint version **in German**, with animations and speaker notes (a separate copy: changes to `slides.md` do not update it) |
 
 ## Edit and rebuild
 
